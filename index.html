@@ -1383,49 +1383,59 @@
             document.body.removeChild(textArea);
         }
 
-        // --- IMAGEM E PDF ---
+        // --- FUNÇÃO PARA GERAR IMAGEM HD (ATUALIZADA IGUAL AO ANEXO) ---
         async function downloadImage() {
             const element = document.getElementById('report-card');
+            // Busca correta do texto do botão
             const btnSpan = document.querySelector('button[onclick="downloadImage()"] span');
             const originalText = btnSpan.innerText;
-            btnSpan.innerText = "Gerando...";
+            btnSpan.innerText = "Gerando Imagem...";
 
             try {
+                // Check for data first
                 const data = getFilteredData();
                 if (data.length === 0) {
                     showMessageModal('Atenção', 'Adicione registros primeiro.', 'error');
                     return;
                 }
 
+                // Configurações idênticas ao código de referência (Alta Resolução)
                 const options = {
-                    scale: 3, 
+                    scale: 5, // Alta resolução (Aumentado de 3 para 5)
                     useCORS: true, 
                     allowTaint: true,
                     scrollY: -window.scrollY,
                     backgroundColor: '#ffffff', 
-                    windowWidth: 480,
+                    windowWidth: 480, // Força layout mobile
                     onclone: (doc) => {
                         const el = doc.getElementById('report-card');
                         const content = doc.getElementById('reportContent');
+                        
                         if (el) { 
                             el.style.width = '450px'; 
                             el.style.maxWidth = '450px';
                             el.style.margin = '0'; 
                             el.style.boxShadow = 'none';
+                            el.style.borderRadius = '0';
                             el.style.border = 'none';
                         }
                         if (content) { 
                             content.style.height = 'auto'; 
                             content.style.overflow = 'visible'; 
+                            content.style.maxHeight = 'none';
                         }
                     }
                 };
 
                 const canvas = await html2canvas(element, options);
+                
+                // Gera Link de Download
                 const imgData = canvas.toDataURL('image/png');
                 
+                // --- GERAR NOME DO ARQUIVO PERSONALIZADO ---
                 const now = new Date();
                 const dateStr = now.toLocaleDateString('pt-BR').replace(/\//g, '-');
+                
                 const link = document.createElement('a');
                 link.href = imgData;
                 link.download = `Resumo_Plantio_${dateStr}.png`;
@@ -1434,8 +1444,8 @@
                 document.body.removeChild(link);
 
             } catch (err) {
-                console.error(err);
-                showMessageModal('Erro', 'Falha ao gerar imagem.', 'error');
+                console.error("Erro ao gerar imagem:", err);
+                showMessageModal('Erro', 'Falha ao gerar imagem: ' + err.message, 'error');
             } finally {
                 btnSpan.innerText = originalText;
             }
