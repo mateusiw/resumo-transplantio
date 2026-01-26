@@ -1,0 +1,1536 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Registro de Transplantio - SPG</title>
+    
+    <!-- Configurações PWA -->
+    <link rel="icon" type="image/png" href="https://i.imgur.com/f7UnnL0.png">
+    <link rel="apple-touch-icon" href="https://i.imgur.com/f7UnnL0.png">
+    <meta name="theme-color" content="#ffffff">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="SPG Plantio">
+    
+    <!-- Bibliotecas Externas -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- HTML2Canvas + jsPDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; -webkit-tap-highlight-color: transparent; }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        input, select { line-height: 1.5; }
+        
+        /* Estilos para o Relatório Técnico (PDF) */
+        #technical-report-template {
+            width: 794px; /* A4 Width at 96dpi approx */
+            min-height: 1123px; /* A4 Height */
+            background: white;
+            padding: 40px;
+            box-sizing: border-box;
+            position: absolute;
+            top: -9999px;
+            left: -9999px;
+            font-family: 'Helvetica', 'Arial', sans-serif;
+            color: #333;
+        }
+        .tech-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            font-size: 11px;
+        }
+        .tech-table th {
+            background-color: #f0fdf4; /* Verde claro */
+            color: #166534; /* Verde escuro */
+            font-weight: bold;
+            text-transform: uppercase;
+            padding: 8px;
+            border: 1px solid #bbf7d0;
+            text-align: left;
+        }
+        .tech-table td {
+            padding: 8px;
+            border: 1px solid #e2e8f0;
+            vertical-align: middle;
+        }
+        .tech-header {
+            border-bottom: 2px solid #166534;
+            padding-bottom: 20px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.2s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800 min-h-screen pb-20 select-none">
+
+    <!-- Navbar -->
+    <div class="bg-white border-b border-slate-200 px-4 py-3 flex flex-col md:flex-row justify-between items-center shadow-sm sticky top-0 z-40 gap-3">
+        <div class="flex items-center gap-3 w-full md:w-auto">
+            <img src="https://i.imgur.com/f7UnnL0.png" alt="Logo SPG" class="w-8 h-8 rounded-lg shadow-sm border border-slate-100">
+            <div>
+                <h1 class="text-sm font-bold text-slate-800 leading-tight">SPG TRANSPLANTIO</h1>
+                <p class="text-[10px] text-slate-500 font-medium">Controle de Plantio de Mudas</p>
+            </div>
+        </div>
+        <div class="flex gap-2 w-full md:w-auto overflow-x-auto pb-1 md:pb-0">
+            <!-- Botão WhatsApp -->
+            <button id="btnZap" onclick="copyToWhatsApp()" class="flex-1 md:flex-none flex items-center justify-center gap-2 px-3 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg text-xs font-bold shadow-lg shadow-emerald-500/20 transition-all active:scale-95 active:bg-emerald-700 whitespace-nowrap">
+                <i data-lucide="message-circle" class="w-4 h-4"></i>
+                <span>Zap</span>
+            </button>
+            
+            <!-- Botão Imagem -->
+            <button onclick="downloadImage()" class="flex-1 md:flex-none flex items-center justify-center gap-2 px-3 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg text-xs font-bold shadow-lg shadow-orange-500/20 transition-all active:scale-95 active:bg-orange-700 whitespace-nowrap">
+                <i data-lucide="image" class="w-4 h-4"></i>
+                <span>Imagem</span>
+            </button>
+
+            <!-- Botão PDF -->
+            <button id="pdfBtn" type="button" onclick="downloadPDF()" class="flex-1 md:flex-none flex items-center justify-center gap-2 px-3 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-xs font-bold shadow-lg shadow-red-600/20 transition-all active:scale-95 active:bg-red-800 whitespace-nowrap">
+                <i data-lucide="file-down" class="w-4 h-4"></i>
+                <span>Relatório PDF</span>
+            </button>
+        </div>
+    </div>
+
+    <div class="container mx-auto p-4 flex flex-col lg:flex-row gap-8 mt-4">
+        
+        <!-- COLUNA DA ESQUERDA: CONTROLES -->
+        <div class="w-full lg:w-2/5 space-y-4">
+            
+            <!-- 1. DADOS GERAIS (DATA, LOCAL, COLABORADORES) -->
+            <div id="generalDataCard" class="bg-emerald-50 p-5 rounded-2xl shadow-sm border border-emerald-100 transition-colors">
+                <h2 class="text-sm font-bold text-emerald-800 mb-3 flex items-center gap-2">
+                    <i data-lucide="calendar-check" class="text-emerald-600"></i> Dados Gerais do Plantio
+                </h2>
+                
+                <!-- GERAL -->
+                <div class="grid grid-cols-2 gap-3 mb-5">
+                    <div class="relative">
+                        <label class="text-[10px] font-bold text-emerald-600 uppercase tracking-wide mb-1 block">Local <span class="text-red-500">*</span></label>
+                        <select id="partner" required onchange="clearError('partner'); updateGlobalState()" class="w-full p-2 border border-emerald-200 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none text-sm bg-white">
+                            <option value="">Selecione...</option>
+                            <option value="SPG Oásis">SPG Oásis</option>
+                            <option value="SPG Sede">SPG Sede</option>
+                        </select>
+                        <span id="error-partner" class="text-[9px] text-red-500 font-bold hidden absolute -bottom-4 left-0">Preencha este campo</span>
+                    </div>
+                    <div class="relative">
+                        <label class="text-[10px] font-bold text-emerald-600 uppercase tracking-wide mb-1 block">Data <span class="text-red-500">*</span></label>
+                        <input type="date" id="appDate" required onchange="clearError('appDate'); updateGlobalState()" class="w-full p-2 border border-emerald-200 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none text-sm bg-white text-slate-600">
+                        <span id="error-appDate" class="text-[9px] text-red-500 font-bold hidden absolute -bottom-4 left-0">Preencha este campo</span>
+                    </div>
+                </div>
+
+                <!-- OPERACIONAL -->
+                <div class="mb-5">
+                    <div class="relative">
+                        <label class="text-[10px] font-bold text-slate-500 mb-1 block">Colaboradores (Qtd)</label>
+                        <input type="number" id="collaborators" placeholder="Ex: 10" oninput="updateGlobalState()" class="w-full p-2 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-emerald-500 outline-none">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-3 gap-2 mb-3">
+                    <div class="relative">
+                        <label class="text-[10px] font-bold text-slate-500 mb-1 block">Início</label>
+                        <input type="time" id="startTime" onchange="clearError('startTime'); calculateDuration(); updateGlobalState();" class="w-full p-2 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-emerald-500 outline-none">
+                        <span id="error-startTime" class="text-[9px] text-red-500 font-bold hidden absolute -bottom-4 left-0">Preencha este campo</span>
+                    </div>
+                    <div class="relative">
+                        <label class="text-[10px] font-bold text-slate-500 mb-1 block">Fim</label>
+                        <input type="time" id="endTime" onchange="clearError('endTime'); calculateDuration(); updateGlobalState();" class="w-full p-2 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-emerald-500 outline-none">
+                        <span id="error-endTime" class="text-[9px] text-red-500 font-bold hidden absolute -bottom-4 left-0">Preencha este campo</span>
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-bold text-slate-500 mb-1 block">Total</label>
+                        <input type="text" id="totalDuration" readonly placeholder="--:--" class="w-full p-2 border border-slate-200 bg-slate-100 rounded-lg text-sm text-slate-600 focus:outline-none font-semibold">
+                    </div>
+                </div>
+                
+                <!-- AVISO DE ERRO DENTRO DO CARD -->
+                <div id="generalDataError" class="hidden mt-3 bg-red-50 border border-red-200 text-red-600 px-3 py-2 rounded-lg text-xs flex items-center gap-2 animate-pulse">
+                    <i data-lucide="alert-triangle" width="16" class="shrink-0"></i>
+                    <span>Por favor, preencha o <b>Local</b> e a <b>Data</b> acima para continuar.</span>
+                </div>
+            </div>
+
+            <!-- 2. FORMULÁRIO DE LANÇAMENTO -->
+            <div id="formContainer" class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 transition-colors duration-300">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 id="formTitle" class="text-lg font-bold text-slate-800 flex items-center gap-2">
+                        <i data-lucide="sprout" class="text-emerald-600"></i> Novo Plantio
+                    </h2>
+                    <button type="button" onclick="clearBlockForm()" class="text-xs font-semibold text-slate-400 hover:text-red-500 transition-colors flex items-center gap-1">
+                        <i data-lucide="eraser" class="w-3 h-3"></i> Limpar
+                    </button>
+                </div>
+                
+                <form id="appForm" onsubmit="addItem(event)" class="space-y-4" novalidate>
+                    
+                    <!-- CULTURA E VARIEDADE -->
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="relative">
+                            <label class="text-xs font-bold text-slate-500 uppercase mb-1 block">Cultura</label>
+                            <select id="crop" onchange="toggleOtherCropInput(); clearError('crop'); handleCropChange();" required class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none text-sm bg-white">
+                                <option value="Brócolis">Brócolis</option>
+                                <option value="Couve-Flor">Couve-Flor</option>
+                                <option value="Pepino">Pepino</option>
+                                <option value="Outros">Outros</option>
+                            </select>
+                            
+                            <!-- INPUT CULTURA (OVERLAY) -->
+                            <div id="crop-custom-div" class="hidden relative w-full fade-in">
+                                <input type="text" id="otherCropInput" oninput="clearError('otherCropInput')" class="w-full p-2 pr-8 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-emerald-500 outline-none" placeholder="Qual cultura?">
+                                <button type="button" onclick="resetCropField(); handleCropChange();" class="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-red-500">
+                                    <i data-lucide="x-circle" width="14"></i>
+                                </button>
+                            </div>
+                            <span id="error-crop" class="text-[9px] text-red-500 font-bold hidden absolute -bottom-4 left-0">Preencha este campo</span>
+                        </div>
+
+                        <div class="relative">
+                            <label class="text-xs font-bold text-slate-500 uppercase mb-1 block">Variedade</label>
+                            
+                            <!-- Input para Texto Livre (Padrão/Outros) -->
+                            <input type="text" id="varietyInput" placeholder="Ex: BRO" class="w-full p-2 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-emerald-500 outline-none">
+                            
+                            <!-- Select para Listas Definidas -->
+                            <select id="varietySelect" onchange="toggleOtherVarietyInput()" class="hidden w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none text-sm bg-white">
+                                <option value="">Selecione...</option>
+                            </select>
+
+                            <!-- Overlay Input para 'Outra' na Lista -->
+                            <div id="variety-custom-div" class="hidden relative w-full fade-in">
+                                <input type="text" id="otherVarietyInput" class="w-full p-2 pr-8 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-emerald-500 outline-none" placeholder="Qual variedade?">
+                                <button type="button" onclick="resetVarietyField()" class="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-red-500">
+                                    <i data-lucide="x-circle" width="14"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- BLOCO E IDADE -->
+                    <div class="grid grid-cols-2 gap-3">
+                         <div class="relative">
+                            <label id="blockLabel" class="text-xs font-bold text-slate-500 uppercase mb-1 block">Nº Bloco</label>
+                            <input type="text" id="blockId" required oninput="clearError('blockId')" placeholder="Ex: 06" class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none text-sm bg-white">
+                            <select id="blockSelect" onchange="clearError('blockSelect')" class="hidden w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none text-sm bg-white">
+                                <option value="">Selecione...</option>
+                            </select>
+                            <span id="error-blockId" class="text-[9px] text-red-500 font-bold hidden absolute -bottom-4 left-0">Preencha este campo</span>
+                        </div>
+                        <div class="relative">
+                            <label class="text-xs font-bold text-slate-500 uppercase mb-1 block">Idade (dias)</label>
+                            <input type="number" id="plantAge" placeholder="Ex: 30" class="w-full p-2 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-emerald-500 outline-none">
+                        </div>
+                    </div>
+
+                    <!-- BANDEJAS, MUDAS E PLANTADO -->
+                    <div class="bg-slate-50 p-3 rounded-lg border border-slate-100 space-y-3">
+                        <div class="grid grid-cols-3 gap-2">
+                             <div>
+                                <label class="text-[10px] font-bold text-slate-500 mb-1 block">Bandejas</label>
+                                <!-- Adicionado calculateSeedlingsFromTrays() -->
+                                <input type="number" id="trays" oninput="calculateSeedlingsFromTrays()" placeholder="Qtd" class="w-full p-2 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-emerald-500 outline-none">
+                            </div>
+                            <div class="col-span-2 relative">
+                                <label class="text-[10px] font-bold text-blue-600 mb-1 block">Mudas (Total)</label>
+                                <!-- Adicionado readonly e alterado estilo para indicar bloqueio -->
+                                <input type="text" inputmode="numeric" id="totalSeedlings" required readonly placeholder="Automático" class="w-full p-2 border border-blue-200 bg-blue-100 rounded-lg text-sm text-blue-800 font-bold focus:outline-none cursor-not-allowed">
+                                <span id="error-totalSeedlings" class="text-[9px] text-red-500 font-bold hidden absolute -bottom-4 left-0">Preencha</span>
+                            </div>
+                        </div>
+
+                        <div class="relative">
+                            <label class="text-[10px] font-bold text-emerald-600 mb-1 block">Plantado (Efetivo)</label>
+                            <!-- Alterado type="text", adicionado inputmode="numeric" e oninput="formatNumberInput" -->
+                            <input type="text" inputmode="numeric" id="plantedAmount" required oninput="formatNumberInput(this); clearError('plantedAmount'); calculateLoss()" placeholder="Ex: 14.500" class="w-full p-2 border border-emerald-200 bg-emerald-50 rounded-lg text-sm text-emerald-800 font-bold focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                            <span id="error-plantedAmount" class="text-[9px] text-red-500 font-bold hidden absolute -bottom-4 left-0">Preencha</span>
+                        </div>
+
+                        <!-- RESULTADOS CALCULADOS -->
+                        <div class="grid grid-cols-2 gap-3 pt-2 border-t border-slate-200">
+                            <div>
+                                <label class="text-[9px] font-bold text-red-400 uppercase">Perdas</label>
+                                <div id="displayLoss" class="text-sm font-bold text-red-600">-</div>
+                            </div>
+                            <div>
+                                <label class="text-[9px] font-bold text-red-400 uppercase">% Perda</label>
+                                <div id="displayLossPercent" class="text-sm font-bold text-red-600">-</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-2">
+                        <label class="text-[10px] font-bold text-slate-500 mb-1 block">Observações (Opcional)</label>
+                        <input type="text" id="notes" placeholder="Ex: Mudas pequenas..." class="w-full p-2 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-emerald-500 outline-none">
+                   </div>
+
+                    <button type="submit" id="submitBtn" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-bold py-3 rounded-xl transition-all flex justify-center items-center gap-2 mt-4 active:scale-95">
+                        <i data-lucide="plus-circle" class="w-4 h-4"></i> <span>Registrar Plantio</span>
+                    </button>
+                </form>
+            </div>
+
+            <!-- Lista de Itens -->
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-sm font-bold text-slate-700">Registros do Dia</h3>
+                    <button onclick="showClearAllModal()" class="text-xs text-red-500 hover:text-red-700 font-bold underline">Limpar Tudo</button>
+                </div>
+                <ul id="itemsList" class="space-y-2 text-sm text-slate-600">
+                    <!-- JS -->
+                </ul>
+            </div>
+        </div>
+
+        <!-- PREVIEW -->
+        <div class="w-full lg:w-3/5 flex flex-col bg-slate-200/50 p-4 rounded-3xl border border-slate-300/50 min-h-[calc(100vh-6rem)]">
+            
+            <div id="report-card" class="w-full flex-1 flex flex-col bg-white shadow-2xl overflow-hidden border border-slate-100 relative">
+                
+                <!-- Cabeçalho (Azul Meio Verde / Teal) -->
+                <div class="bg-gradient-to-br from-teal-600 to-teal-800 p-6 text-white relative overflow-hidden flex flex-col justify-start shrink-0 gap-3 antialiased">
+                    <img src="https://i.imgur.com/f7UnnL0.png" alt="Logo SPG" class="absolute top-4 right-4 w-24 h-24 z-0" style="image-rendering: -webkit-optimize-contrast;">
+                    <div class="relative z-10 w-full pr-24"> 
+                        <h2 id="reportTitle" class="text-sm font-bold leading-snug tracking-normal">
+                            <!-- Injetado via JS -->
+                        </h2>
+                        <div class="mt-3 pt-3 border-t border-white/20">
+                             <span id="headerDateTime" class="text-xs font-medium text-teal-100 block opacity-90 tracking-wide">
+                                <!-- Injetado via JS -->
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Painel de DADOS OPERACIONAIS -->
+                <div id="operationalSummary" class="hidden bg-slate-50 border-b border-slate-200 p-4">
+                    <!-- Preenchido via JS -->
+                </div>
+
+                <!-- Painel de Totais -->
+                <div id="operationalFooter" class="bg-white border-b border-slate-200 p-4 shrink-0">
+                     <!-- Conteúdo injetado via JS -->
+                </div>
+
+                <!-- Conteúdo -->
+                <div id="reportContent" class="divide-y divide-slate-50 flex-1 overflow-y-auto">
+                    <div class="p-8 text-center text-slate-400 text-xs italic leading-relaxed h-full flex items-center justify-center">Utilize o formulário para registrar os plantios.</div>
+                </div>
+
+                <!-- Rodapé da Marca -->
+                <div class="bg-slate-100 p-3 text-center border-t border-slate-200 shrink-0">
+                    <div class="flex justify-center items-center gap-2 text-[10px] text-slate-400 font-medium uppercase tracking-widest leading-relaxed">
+                        SPG • Controle de Plantio
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- ELEMENTO OCULTO PARA O RELATÓRIO TÉCNICO PDF -->
+    <div id="technical-report-template">
+        <div class="tech-header">
+            <div>
+                <h1 style="font-size: 24px; font-weight: bold; color: #1e293b; margin: 0;">RELATÓRIO DE TRANSPLANTIO</h1>
+                <p style="font-size: 14px; color: #64748b; margin: 5px 0 0 0;">Controle de Plantio • SPG</p>
+            </div>
+            <img src="https://i.imgur.com/f7UnnL0.png" style="height: 80px; width: auto;">
+        </div>
+
+        <div style="display: flex; justify-content: space-between; margin-bottom: 20px; font-size: 12px; border: 1px solid #e2e8f0; padding: 15px; background-color: #f8fafc;">
+            <div style="line-height: 1.8;">
+                <div><strong>Local:</strong> <span id="pdf-partner"></span></div>
+                <div><strong>Data:</strong> <span id="pdf-date"></span> <span id="pdf-week"></span></div>
+            </div>
+            <div style="line-height: 1.8;">
+                <div><strong>Colaboradores:</strong> <span id="pdf-collaborators"></span></div>
+                <div><strong>Horário:</strong> <span id="pdf-time"></span></div>
+            </div>
+            <div style="line-height: 1.8; text-align: right;">
+                 <div><strong>TOTAL PLANTADO:</strong> <span id="pdf-total-planted"></span></div>
+            </div>
+        </div>
+
+        <h3 style="font-size: 14px; font-weight: bold; color: #166534; border-bottom: 1px solid #bbf7d0; padding-bottom: 5px; margin-bottom: 10px;">DETALHAMENTO</h3>
+        
+        <table class="tech-table">
+            <thead>
+                <tr>
+                    <th style="width: 10%;">Bloco</th>
+                    <th style="width: 15%;">Cultura/Var</th>
+                    <th style="width: 8%;">Idade</th>
+                    <th style="width: 8%;">Bandejas</th>
+                    <th style="width: 12%;">Mudas (Total)</th>
+                    <th style="width: 12%;">Plantado</th>
+                    <th style="width: 10%;">% Plant.</th>
+                    <th style="width: 12%;">Perdas</th>
+                    <th style="width: 13%;">% Perda</th>
+                </tr>
+            </thead>
+            <tbody id="pdf-table-body">
+                <!-- Linhas injetadas via JS -->
+            </tbody>
+        </table>
+
+        <div style="margin-top: 60px; display: flex; justify-content: space-between; page-break-inside: avoid;">
+            <div style="width: 40%; border-top: 1px solid #333; text-align: center; font-size: 11px; padding-top: 5px;">
+                Responsável Técnico
+            </div>
+            <div style="width: 40%; border-top: 1px solid #333; text-align: center; font-size: 11px; padding-top: 5px;">
+                Responsável Plantio
+            </div>
+        </div>
+        
+        <div style="position: absolute; bottom: 30px; width: 100%; text-align: center; font-size: 10px; color: #94a3b8; border-top: 1px solid #e2e8f0; padding-top: 10px;">
+            Documento gerado eletronicamente pelo sistema SPG.
+        </div>
+    </div>
+    
+    <!-- MODAL DE CONFIRMAÇÃO LIMPAR TUDO -->
+    <div id="clearAllModal" class="fixed inset-0 bg-black/50 z-50 hidden flex justify-center items-center backdrop-blur-sm transition-opacity duration-300">
+        <div class="bg-white rounded-xl shadow-2xl p-6 w-11/12 max-w-sm transform transition-all scale-100">
+            <div class="text-center mb-5">
+                <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4">
+                    <i data-lucide="alert-triangle" class="h-6 w-6 text-red-600"></i>
+                </div>
+                <h3 class="text-lg font-bold text-slate-800">Limpar Tudo?</h3>
+                <p class="text-sm text-slate-500 mt-2">Tem certeza que deseja apagar todos os registros? Esta ação não pode ser desfeita.</p>
+            </div>
+            <div class="flex gap-3">
+                <button onclick="hideClearAllModal()" class="flex-1 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-lg text-sm transition-colors">Cancelar</button>
+                <button onclick="confirmClearAll()" class="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg text-sm transition-colors">Sim, Limpar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL GENÉRICO DE MENSAGEM -->
+    <div id="messageModal" class="fixed inset-0 bg-black/50 z-50 hidden flex justify-center items-center backdrop-blur-sm transition-opacity duration-300">
+        <div class="bg-white rounded-xl shadow-2xl p-6 w-11/12 max-w-sm transform transition-all scale-100 text-center">
+            <div id="msgIconContainer" class="mx-auto flex items-center justify-center h-12 w-12 rounded-full mb-4">
+            </div>
+            <h3 id="msgTitle" class="text-lg font-bold text-slate-800"></h3>
+            <p id="msgText" class="text-sm text-slate-500 mt-2 mb-4"></p>
+            <button onclick="hideMessageModal()" class="w-full px-4 py-2 bg-slate-800 hover:bg-slate-900 text-white font-bold rounded-lg text-sm transition-colors">OK</button>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        console.log("Aplicação 'Transplantio SPG' carregada.");
+
+        let appData = [];
+        let editingIndex = -1;
+        const STORAGE_KEY = 'spg_transplantio_data'; 
+        const GLOBAL_KEY = 'spg_transplantio_global'; 
+
+        // VARIETIES LISTS - SORTED A-Z
+        const varietiesCauliflower = [
+            "26972 RZ", "Alcala", "Champagne Snow", "Copacabana", "Ponto Perde", 
+            "Serena", "SF-1758", "SF-1758 F1", "Supremo", "Tirsuli", 
+            "Vereda", "Vereda F1", "Vereda RZ", "Vigor F1"
+        ];
+        
+        const varietiesBroccoli = [
+            "Bragantino F1", "BRO 68 Syngenta", "BRO 68 Syngenta F1", "Claramont", 
+            "Master TSV", "PHAR LAP", "Phar Lap F1", "Sakata Jiraya F1"
+        ];
+
+        // NEW: Cucumber Varieties
+        const varietiesCucumber = [
+            "AGX40404", "Aikido", "Tikara", "Tsuyataro"
+        ];
+
+        // Estado Global
+        let globalInfo = {
+            partner: '',
+            date: '',
+            collaborators: '',
+            startTime: '',
+            endTime: '',
+            duration: ''
+        };
+
+        // INICIALIZAÇÃO
+        lucide.createIcons();
+        loadFromStorage();
+        updateDynamicTitle();
+        calculateDuration();
+        updateGlobalState();
+        handleCropChange();
+
+        // --- VALIDAÇÃO DE CAMPO ---
+        function toggleError(id, show) {
+            const el = document.getElementById(id);
+            const err = document.getElementById('error-' + id);
+            
+            if (!el) return; 
+
+            if(show) {
+                el.classList.add('border-red-500', 'ring-1', 'ring-red-500');
+                if(err) err.classList.remove('hidden');
+            } else {
+                el.classList.remove('border-red-500', 'ring-1', 'ring-red-500');
+                if(err) err.classList.add('hidden');
+            }
+        }
+        
+        function clearError(id) {
+            toggleError(id, false);
+        }
+
+        // --- VALIDAÇÃO DE CABEÇALHO ---
+        function validateHeader() {
+            let isValid = true;
+            
+            // 1. Local
+            if(!document.getElementById('partner').value) { 
+                toggleError('partner', true); 
+                isValid = false; 
+            } else { 
+                toggleError('partner', false); 
+            }
+
+            // 2. Data
+            if(!document.getElementById('appDate').value) { 
+                toggleError('appDate', true); 
+                isValid = false; 
+            } else { 
+                toggleError('appDate', false); 
+            }
+            
+            // REMOVIDO A OBRIGATORIEDADE DE HORÁRIO PARA EVITAR TRAVAMENTO SE O USUÁRIO NÃO QUISER INFORMAR
+            // O sistema ainda vai coletar se tiver preenchido, mas não vai bloquear se estiver vazio,
+            // a não ser que seja crucial para o seu processo. Se for crucial, mantenha.
+            // Vou manter como estava para não quebrar lógica, mas simplificado visualmente.
+            const start = document.getElementById('startTime').value;
+            const end = document.getElementById('endTime').value;
+            
+            // Se preencher um, deve preencher o outro (opcional lógico) ou manter obrigatório sempre?
+            // Mantendo obrigatório conforme lógica original:
+            if(!start) { toggleError('startTime', true); isValid = false; } else { toggleError('startTime', false); }
+            if(!end) { toggleError('endTime', true); isValid = false; } else { toggleError('endTime', false); }
+
+            return isValid;
+        }
+
+        // --- NOVA FUNÇÃO DE FORMATAÇÃO DE NÚMEROS ---
+        function formatNumberInput(input) {
+            let value = input.value.replace(/\D/g, ''); // Remove tudo que não for dígito
+            if (value === '') {
+                input.value = '';
+                return;
+            }
+            // Formata com pontos (pt-BR)
+            value = parseInt(value).toLocaleString('pt-BR');
+            input.value = value;
+        }
+
+        // --- ATUALIZAÇÃO EM TEMPO REAL (DADOS GERAIS) ---
+        function updateGlobalState() {
+            const fields = ['partner', 'appDate', 'startTime', 'endTime'];
+            fields.forEach(id => {
+                const el = document.getElementById(id);
+                 if(el) el.classList.remove('border-red-500', 'ring-1', 'ring-red-500');
+            });
+            document.querySelectorAll('[id^="error-"]').forEach(el => el.classList.add('hidden'));
+
+            globalInfo.partner = document.getElementById('partner').value;
+            globalInfo.date = document.getElementById('appDate').value;
+            globalInfo.collaborators = document.getElementById('collaborators').value;
+            globalInfo.startTime = document.getElementById('startTime').value;
+            globalInfo.endTime = document.getElementById('endTime').value;
+            globalInfo.duration = document.getElementById('totalDuration').value;
+
+            localStorage.setItem(GLOBAL_KEY, JSON.stringify(globalInfo));
+            updateDynamicTitle();
+            renderHeaderAndSummary();
+            renderList();
+            renderReport();
+        }
+
+        // --- CÁLCULO AUTOMÁTICO MUDAS (1 BANDEJA = 200 MUDAS) ---
+        function calculateSeedlingsFromTrays() {
+            const trays = parseInt(document.getElementById('trays').value) || 0;
+            const seedlingsInput = document.getElementById('totalSeedlings');
+            
+            if(trays > 0) {
+                const total = trays * 200;
+                seedlingsInput.value = total.toLocaleString('pt-BR');
+                clearError('totalSeedlings');
+            } else {
+                seedlingsInput.value = '';
+            }
+            calculateLoss();
+        }
+
+        // --- CÁLCULO DE PERDAS ---
+        function calculateLoss() {
+            // Helper para remover pontos e converter para número
+            const parseFormatted = (val) => parseInt(val.replace(/\./g, '')) || 0;
+
+            const mudas = parseFormatted(document.getElementById('totalSeedlings').value);
+            const plantado = parseFormatted(document.getElementById('plantedAmount').value);
+            
+            const displayLoss = document.getElementById('displayLoss');
+            const displayPercent = document.getElementById('displayLossPercent');
+
+            if (mudas > 0 && plantado > 0) {
+                const perdas = mudas - plantado;
+                const percent = (perdas / mudas) * 100;
+                
+                displayLoss.innerText = perdas.toLocaleString('pt-BR'); // Exibe formatado
+                displayPercent.innerText = percent.toFixed(1) + '%';
+                
+                if(perdas < 0) {
+                     displayLoss.innerText = "Erro (Plantado > Mudas)";
+                     displayPercent.innerText = "-";
+                }
+            } else {
+                displayLoss.innerText = "-";
+                displayPercent.innerText = "-";
+            }
+        }
+
+        // --- CÁLCULO DE TEMPO ---
+        function calculateDuration() {
+            const start = document.getElementById('startTime').value;
+            const end = document.getElementById('endTime').value;
+            const totalInput = document.getElementById('totalDuration');
+            if (start && end) {
+                const startD = new Date(`2000-01-01T${start}`);
+                const endD = new Date(`2000-01-01T${end}`);
+                let diffMs = endD - startD;
+                if (diffMs < 0) diffMs += 24 * 60 * 60 * 1000;
+                const totalMinutes = Math.floor(diffMs / 60000);
+                const hours = Math.floor(totalMinutes / 60);
+                const minutes = totalMinutes % 60;
+                let durationStr = "";
+                if (hours > 0) durationStr += `${hours}h `;
+                durationStr += `${minutes}min`;
+                totalInput.value = durationStr;
+            } else {
+                totalInput.value = "";
+            }
+            updateGlobalState();
+        }
+
+        function handleCropChange() {
+            const select = document.getElementById('crop');
+            const blockLabel = document.getElementById('blockLabel');
+            const blockInput = document.getElementById('blockId');
+            const blockSelect = document.getElementById('blockSelect'); 
+            
+            // VARIETY ELEMENTS
+            const varietyInput = document.getElementById('varietyInput');
+            const varietySelect = document.getElementById('varietySelect');
+            const varietyCustomDiv = document.getElementById('variety-custom-div');
+
+            let cropValue = select.value;
+            if (select.classList.contains('hidden')) {
+                cropValue = 'Outros'; 
+            }
+
+            let useSelect = false;
+            let options = [];
+
+            // BLOCK LOGIC
+            if (cropValue === 'Pepino') {
+                blockLabel.innerText = 'Nº Setor';
+                useSelect = true;
+                options = ['1', '2', '3', '4'];
+            } else if (cropValue === 'Brócolis' || cropValue === 'Couve-Flor') {
+                blockLabel.innerText = 'Nº Bloco';
+                useSelect = true;
+                for (let i = 1; i <= 19; i++) options.push(i.toString());
+                options.push('A', 'B', 'C', 'D', 'E');
+            } else {
+                blockLabel.innerText = 'Nº Bloco';
+                useSelect = false; 
+            }
+
+            if (useSelect) {
+                blockInput.classList.add('hidden');
+                blockInput.required = false;
+                if(blockSelect) {
+                    blockSelect.classList.remove('hidden');
+                    blockSelect.required = true;
+                    const currentVal = blockSelect.value;
+                    blockSelect.innerHTML = '<option value="">Selecione...</option>';
+                    options.forEach(opt => {
+                        const el = document.createElement('option');
+                        el.value = opt; el.innerText = opt;
+                        if(opt === currentVal) el.selected = true;
+                        blockSelect.appendChild(el);
+                    });
+                }
+            } else {
+                blockInput.classList.remove('hidden');
+                blockInput.required = true;
+                blockInput.placeholder = 'Ex: 06';
+                if(blockSelect) {
+                    blockSelect.classList.add('hidden');
+                    blockSelect.required = false;
+                }
+            }
+
+            // VARIETY LOGIC
+            let varietyOptions = [];
+            let useVarietySelect = false;
+
+            if (cropValue === 'Brócolis') {
+                varietyOptions = varietiesBroccoli;
+                useVarietySelect = true;
+            } else if (cropValue === 'Couve-Flor') {
+                varietyOptions = varietiesCauliflower;
+                useVarietySelect = true;
+            } else if (cropValue === 'Pepino') {
+                varietyOptions = varietiesCucumber;
+                useVarietySelect = true;
+            } else {
+                useVarietySelect = false;
+            }
+
+            if(useVarietySelect) {
+                varietyInput.classList.add('hidden');
+                varietySelect.classList.remove('hidden');
+                
+                const currentVar = varietySelect.value;
+                varietySelect.innerHTML = '<option value="">Selecione...</option>';
+                
+                varietyOptions.forEach(v => {
+                    const el = document.createElement('option');
+                    el.value = v; el.innerText = v;
+                    if(v === currentVar) el.selected = true;
+                    varietySelect.appendChild(el);
+                });
+                
+                // Add "Outra" option
+                const otherOpt = document.createElement('option');
+                otherOpt.value = 'Outra'; otherOpt.innerText = 'Outra...';
+                if(currentVar === 'Outra') otherOpt.selected = true;
+                varietySelect.appendChild(otherOpt);
+
+            } else {
+                varietySelect.classList.add('hidden');
+                varietyCustomDiv.classList.add('hidden');
+                varietyInput.classList.remove('hidden');
+            }
+        }
+        
+        function toggleOtherCropInput() {
+            const select = document.getElementById('crop');
+            const customDiv = document.getElementById('crop-custom-div');
+            const customInput = document.getElementById('otherCropInput');
+            
+            if (select.value === 'Outros') {
+                select.classList.add('hidden');
+                customDiv.classList.remove('hidden');
+                customInput.focus();
+            }
+        }
+        function resetCropField() {
+            const select = document.getElementById('crop');
+            const customDiv = document.getElementById('crop-custom-div');
+            const customInput = document.getElementById('otherCropInput');
+            customInput.value = '';
+            select.value = 'Brócolis';
+            select.selectedIndex = 0;
+            select.classList.remove('hidden');
+            customDiv.classList.add('hidden');
+            handleCropChange(); // Re-trigger to set varieties
+        }
+
+        // --- VARIETY HELPER FUNCTIONS ---
+        function toggleOtherVarietyInput() {
+            const select = document.getElementById('varietySelect');
+            const customDiv = document.getElementById('variety-custom-div');
+            const customInput = document.getElementById('otherVarietyInput');
+            
+            if (select.value === 'Outra') {
+                select.classList.add('hidden');
+                customDiv.classList.remove('hidden');
+                customInput.focus();
+            }
+        }
+
+        function resetVarietyField() {
+            const select = document.getElementById('varietySelect');
+            const customDiv = document.getElementById('variety-custom-div');
+            const customInput = document.getElementById('otherVarietyInput');
+            
+            customInput.value = '';
+            select.selectedIndex = 0;
+            select.classList.remove('hidden');
+            customDiv.classList.add('hidden');
+        }
+
+
+        // --- PERSISTÊNCIA ---
+        function saveToStorage() {
+            try { localStorage.setItem(STORAGE_KEY, JSON.stringify(appData)); } catch (e) { console.error("Erro ao salvar", e); }
+        }
+
+        function loadFromStorage() {
+            try {
+                const storedGlobal = localStorage.getItem(GLOBAL_KEY);
+                if (storedGlobal) {
+                    globalInfo = JSON.parse(storedGlobal);
+                    if(globalInfo.partner) document.getElementById('partner').value = globalInfo.partner;
+                    if(globalInfo.date) document.getElementById('appDate').value = globalInfo.date;
+                    if(globalInfo.collaborators) document.getElementById('collaborators').value = globalInfo.collaborators;
+                    if(globalInfo.startTime) document.getElementById('startTime').value = globalInfo.startTime;
+                    if(globalInfo.endTime) document.getElementById('endTime').value = globalInfo.endTime;
+                    if(globalInfo.duration) document.getElementById('totalDuration').value = globalInfo.duration;
+                }
+
+                const storedData = localStorage.getItem(STORAGE_KEY);
+                if (storedData) {
+                    appData = JSON.parse(storedData);
+                    renderList();
+                }
+                renderHeaderAndSummary();
+                updateDynamicTitle();
+                renderReport(); 
+
+            } catch (e) { console.error("Erro ao carregar", e); }
+        }
+        
+        function getFilteredData() {
+            const currentPartner = globalInfo.partner || document.getElementById('partner').value; 
+            if(!currentPartner) return [];
+            return appData.filter(item => item.partner === currentPartner);
+        }
+
+        function getWeekNumber(d) {
+            d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+            d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
+            var yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+            return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+        }
+
+        function updateDynamicTitle() {
+            const displayPartner = globalInfo.partner || 'Local';
+            const titleHTML = `Resumo de Transplantio<br>${displayPartner}`;
+            document.getElementById('reportTitle').innerHTML = titleHTML;
+
+            const dateElement = document.getElementById('headerDateTime');
+            if (globalInfo.date) {
+                const parts = globalInfo.date.split('-');
+                const day = parts[2];
+                const month = parts[1];
+                const year = parts[0];
+                
+                // Calculando semana
+                const dateObj = new Date(year, month - 1, day);
+                const weekNum = getWeekNumber(dateObj);
+
+                dateElement.innerText = `Data: ${day}/${month}/${year} - Semana ${weekNum}`;
+                dateElement.style.opacity = "1";
+            } else {
+                dateElement.innerText = "Data:";
+            }
+        }
+
+        // MODAL FUNCTIONS
+        function showClearAllModal() {
+            document.getElementById('clearAllModal').classList.remove('hidden');
+        }
+
+        function hideClearAllModal() {
+            document.getElementById('clearAllModal').classList.add('hidden');
+        }
+
+        function confirmClearAll() {
+            appData = [];
+            saveToStorage();
+            clearBlockForm(false); 
+            renderReport();
+            renderList();
+            hideClearAllModal();
+        }
+
+        function showMessageModal(title, message, type) {
+            const modal = document.getElementById('messageModal');
+            const iconContainer = document.getElementById('msgIconContainer');
+            const titleEl = document.getElementById('msgTitle');
+            const textEl = document.getElementById('msgText');
+
+            titleEl.innerText = title;
+            textEl.innerText = message;
+
+            if (type === 'error') {
+                iconContainer.className = "mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4";
+                iconContainer.innerHTML = '<i data-lucide="alert-circle" class="h-6 w-6 text-red-600"></i>';
+            } else if (type === 'success') {
+                iconContainer.className = "mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100 mb-4";
+                iconContainer.innerHTML = '<i data-lucide="check-circle" class="h-6 w-6 text-green-600"></i>';
+            } else {
+                iconContainer.className = "mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-blue-100 mb-4";
+                iconContainer.innerHTML = '<i data-lucide="info" class="h-6 w-6 text-blue-600"></i>';
+            }
+
+            modal.classList.remove('hidden');
+            lucide.createIcons();
+        }
+
+        function hideMessageModal() {
+            document.getElementById('messageModal').classList.add('hidden');
+        }
+
+        function clearBlockForm(clearAll = false) {
+            if (clearAll) {
+                document.getElementById('partner').selectedIndex = 0;
+                document.getElementById('startTime').value = '';
+                document.getElementById('endTime').value = '';
+                document.getElementById('totalDuration').value = '';
+                document.getElementById('collaborators').value = '';
+                updateGlobalState();
+            }
+
+            const cropSelect = document.getElementById('crop');
+            cropSelect.selectedIndex = 0; 
+            document.getElementById('otherCropInput').value = '';
+            
+            const cropCustomDiv = document.getElementById('crop-custom-div');
+            cropSelect.classList.remove('hidden');
+            cropCustomDiv.classList.add('hidden');
+
+            handleCropChange(); 
+            
+            document.getElementById('blockId').value = '';
+            const bSelect = document.getElementById('blockSelect');
+            if(bSelect) bSelect.selectedIndex = 0;
+            
+            // RESET VARIETY
+            document.getElementById('varietyInput').value = '';
+            const varietySelect = document.getElementById('varietySelect');
+            varietySelect.selectedIndex = 0;
+            resetVarietyField(); // Reset custom inputs if any
+            
+            document.getElementById('plantAge').value = '';
+            document.getElementById('trays').value = '';
+            document.getElementById('totalSeedlings').value = '';
+            document.getElementById('plantedAmount').value = '';
+            document.getElementById('notes').value = '';
+            
+            document.getElementById('displayLoss').innerText = '-';
+            document.getElementById('displayLossPercent').innerText = '-';
+
+            const blockFields = ['crop', 'otherCropInput', 'blockId', 'blockSelect', 'totalSeedlings', 'plantedAmount'];
+            blockFields.forEach(id => toggleError(id, false));
+
+            editingIndex = -1;
+            const submitBtn = document.getElementById('submitBtn');
+            const formTitle = document.getElementById('formTitle');
+            const formContainer = document.getElementById('formContainer');
+            submitBtn.innerHTML = '<i data-lucide="plus-circle" class="w-4 h-4"></i> <span>Registrar Plantio</span>';
+            submitBtn.classList.remove('bg-blue-600', 'hover:bg-blue-700');
+            submitBtn.classList.add('bg-slate-800', 'hover:bg-slate-900');
+            formTitle.innerHTML = '<i data-lucide="sprout" class="text-emerald-600"></i> Novo Plantio';
+            formContainer.classList.remove('border-blue-300', 'ring-2', 'ring-blue-100');
+            lucide.createIcons();
+        }
+
+        // --- ADD ITEM ---
+        function addItem(e) {
+            e.preventDefault();
+
+            let isValid = true;
+            
+            // Validações anteriores...
+            if (!validateHeader()) {
+                 isValid = false;
+                 document.getElementById('generalDataCard').scrollIntoView({ behavior: 'smooth', block: 'center' });
+                 return;
+            }
+            // ... (Lógica de validação de cultura e bloco mantida igual) ...
+            
+            const crop = document.getElementById('crop');
+            let finalCropName = crop.value;
+            if (crop.classList.contains('hidden') || crop.value === 'Outros') {
+                 const customInput = document.getElementById('otherCropInput');
+                 if (!customInput.value.trim()) { toggleError('otherCropInput', true); isValid = false; } 
+                 else { toggleError('otherCropInput', false); finalCropName = customInput.value.trim(); }
+            } else {
+                 if (!crop.value) { toggleError('crop', true); isValid = false; }
+                 else toggleError('crop', false);
+            }
+
+            const blockSelect = document.getElementById('blockSelect');
+            let finalBlockValue = "";
+            if (blockSelect && !blockSelect.classList.contains('hidden')) {
+                 if(!blockSelect.value) { toggleError('blockSelect', true); isValid = false; }
+                 else { toggleError('blockSelect', false); finalBlockValue = blockSelect.value; }
+            } else {
+                const blockId = document.getElementById('blockId');
+                if (!blockId.value) { toggleError('blockId', true); isValid = false; }
+                else { toggleError('blockId', false); finalBlockValue = blockId.value; }
+            }
+            
+            const mudas = document.getElementById('totalSeedlings');
+            if(!mudas.value) { toggleError('totalSeedlings', true); isValid = false; }
+            else toggleError('totalSeedlings', false);
+
+            const plantado = document.getElementById('plantedAmount');
+            if(!plantado.value) { toggleError('plantedAmount', true); isValid = false; }
+            else toggleError('plantedAmount', false);
+
+            if (!isValid) return;
+
+            // ... (Lógica de Variedade mantida igual) ...
+            const varietyInput = document.getElementById('varietyInput');
+            const varietySelect = document.getElementById('varietySelect');
+            const otherVarietyInput = document.getElementById('otherVarietyInput');
+            let finalVariety = "";
+            if (!varietyInput.classList.contains('hidden')) {
+                finalVariety = varietyInput.value;
+            } else if (!varietySelect.classList.contains('hidden')) {
+                finalVariety = varietySelect.value;
+            } else {
+                finalVariety = otherVarietyInput.value;
+            }
+
+            // AJUSTE NA CAPTURA DOS VALORES (REMOVE PONTOS)
+            const mudasVal = parseInt(mudas.value.replace(/\./g, ''));
+            const plantadoVal = parseInt(plantado.value.replace(/\./g, ''));
+            const perdasVal = mudasVal - plantadoVal;
+            const perdasPercent = mudasVal > 0 ? (perdasVal / mudasVal) * 100 : 0;
+
+            const newItem = {
+                partner: globalInfo.partner, 
+                date: globalInfo.date,
+                collaborators: globalInfo.collaborators,
+                startTime: globalInfo.startTime,
+                endTime: globalInfo.endTime,
+                duration: globalInfo.duration,
+                crop: finalCropName,
+                block: finalBlockValue,
+                variety: finalVariety,
+                age: document.getElementById('plantAge').value,
+                trays: document.getElementById('trays').value,
+                seedlings: mudasVal,
+                planted: plantadoVal,
+                losses: perdasVal,
+                lossPercent: perdasPercent.toFixed(1),
+                notes: document.getElementById('notes').value
+            };
+
+            if (editingIndex >= 0) {
+                appData[editingIndex] = newItem;
+                editingIndex = -1; 
+            } else {
+                appData.push(newItem);
+            }
+            saveToStorage();
+            clearBlockForm(false); 
+            renderReport(); 
+            renderList();
+        }
+
+        function editItem(index) {
+            const item = appData[index];
+            editingIndex = index; 
+
+            // ... (Preenchimento de campos básicos mantido igual) ...
+            document.getElementById('partner').value = item.partner;
+            document.getElementById('appDate').value = item.date;
+            document.getElementById('collaborators').value = item.collaborators || '';
+            document.getElementById('startTime').value = item.startTime || '';
+            document.getElementById('endTime').value = item.endTime || '';
+            calculateDuration(); 
+            updateGlobalState();
+            
+            // ... (Lógica de Cultura e Variedade mantida igual) ...
+            const cropSelect = document.getElementById('crop');
+            const otherInput = document.getElementById('otherCropInput');
+            const cropOptions = Array.from(cropSelect.options).map(o => o.value);
+            
+            if (cropOptions.includes(item.crop)) {
+                const cropCustomDiv = document.getElementById('crop-custom-div');
+                cropSelect.classList.remove('hidden');
+                cropCustomDiv.classList.add('hidden');
+                cropSelect.value = item.crop;
+            } else {
+                cropSelect.value = 'Outros';
+                toggleOtherCropInput();
+                otherInput.value = item.crop; 
+            }
+            handleCropChange();
+
+            const blockSelect = document.getElementById('blockSelect');
+            const blockInput = document.getElementById('blockId');
+            if (blockSelect && !blockSelect.classList.contains('hidden')) {
+                blockSelect.value = item.block;
+            } else {
+                blockInput.value = item.block;
+            }
+
+            const varietyInput = document.getElementById('varietyInput');
+            const varietySelect = document.getElementById('varietySelect');
+            const otherVarietyInput = document.getElementById('otherVarietyInput');
+            if (!varietySelect.classList.contains('hidden')) {
+                const options = Array.from(varietySelect.options).map(o => o.value);
+                if (options.includes(item.variety)) {
+                    varietySelect.value = item.variety;
+                } else {
+                    varietySelect.value = 'Outra';
+                    toggleOtherVarietyInput();
+                    otherVarietyInput.value = item.variety;
+                }
+            } else {
+                varietyInput.value = item.variety;
+            }
+
+            document.getElementById('plantAge').value = item.age || '';
+            document.getElementById('trays').value = item.trays || '';
+            
+            // AJUSTE NA EDIÇÃO: Formata os valores numéricos com pontos ao carregar
+            document.getElementById('totalSeedlings').value = item.seedlings.toLocaleString('pt-BR');
+            document.getElementById('plantedAmount').value = item.planted.toLocaleString('pt-BR');
+            
+            document.getElementById('notes').value = item.notes || '';
+            
+            calculateLoss();
+            
+            // ... (Botões de UI mantidos igual) ...
+            const submitBtn = document.getElementById('submitBtn');
+            const formTitle = document.getElementById('formTitle');
+            const formContainer = document.getElementById('formContainer');
+
+            submitBtn.innerHTML = '<i data-lucide="save" class="w-4 h-4"></i> <span>Salvar Alterações</span>';
+            submitBtn.classList.remove('bg-slate-800', 'hover:bg-slate-900');
+            submitBtn.classList.add('bg-blue-600', 'hover:bg-blue-700');
+
+            formTitle.innerHTML = '<i data-lucide="pencil" class="text-blue-600"></i> Editando Registro';
+            formContainer.classList.add('border-blue-300', 'ring-2', 'ring-blue-100');
+            formContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            lucide.createIcons();
+        }
+
+        function removeItem(index) {
+            if (editingIndex === index) {
+                clearBlockForm(false); 
+                editingIndex = -1;
+            }
+            appData.splice(index, 1);
+            saveToStorage();
+            renderReport();
+            renderList();
+        }
+
+        function renderHeaderAndSummary() {
+            const summaryContainer = document.getElementById('operationalSummary');
+            summaryContainer.classList.remove('hidden');
+
+            const collab = globalInfo.collaborators || '-';
+            
+            let timeRange = "Não informado";
+            if (globalInfo.startTime) {
+                timeRange = `Início: ${globalInfo.startTime}`;
+                if (globalInfo.endTime) {
+                    timeRange = `${globalInfo.startTime} até às ${globalInfo.endTime}`;
+                    // ADICIONADO: Exibição da duração total
+                    if (globalInfo.duration) {
+                        timeRange += ` <span class="text-slate-500 font-normal">(${globalInfo.duration})</span>`;
+                    }
+                }
+            }
+
+            summaryContainer.innerHTML = `
+                <div class="flex flex-col gap-2 text-xs">
+                    <div class="flex justify-between items-start border-b border-slate-200 pb-2">
+                        <div class="flex flex-col gap-1 w-2/3">
+                            <span class="text-[9px] uppercase font-bold text-slate-400 tracking-wider">Operacional</span>
+                            <div class="flex flex-col sm:flex-row gap-2 sm:gap-4">
+                                <span class="text-slate-600 font-medium">Colaboradores: <b class="text-slate-800">${collab}</b></span>
+                            </div>
+                        </div>
+                        <div class="text-right w-1/3">
+                            <span class="text-[9px] uppercase font-bold text-slate-400 tracking-wider block mb-1">Horário de Plantio</span>
+                            <span class="font-bold text-slate-700 text-[10px]">${timeRange}</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderList() {
+            const list = document.getElementById('itemsList');
+            list.innerHTML = '';
+            
+            const displayData = getFilteredData();
+
+            if (appData.length === 0) {
+                list.innerHTML = '<li class="text-center text-slate-400 italic py-2">Nenhum registro adicionado.</li>';
+                return;
+            } else if (displayData.length === 0) {
+                 list.innerHTML = '<li class="text-center text-slate-400 italic py-2">Nenhum registro para este local.</li>';
+                 return;
+            }
+
+            displayData.forEach((item) => {
+                const originalIndex = appData.indexOf(item);
+                const activeClass = (originalIndex === editingIndex) ? 'border-blue-400 bg-blue-50 ring-1 ring-blue-200' : 'border-slate-100 bg-slate-50';
+                
+                let locationLabel = "Bloco";
+                if (item.crop && item.crop.toLowerCase().includes('pepino')) locationLabel = "Setor";
+
+                const li = document.createElement('li');
+                li.className = `flex justify-between items-center p-2 rounded border ${activeClass} transition-all`;
+                li.innerHTML = `
+                    <div class="flex flex-col">
+                        <span class="text-[10px] text-slate-400 font-bold uppercase">${locationLabel} ${item.block} • ${item.crop}</span>
+                        <span class="font-bold text-slate-700">Plantado: ${item.planted.toLocaleString('pt-BR')}</span>
+                        <span class="text-xs text-red-500 font-medium">Perdas: ${item.losses.toLocaleString('pt-BR')} (${item.lossPercent}%)</span>
+                    </div>
+                    <div class="flex items-center">
+                        <button onclick="editItem(${originalIndex})" class="text-blue-500 hover:bg-blue-100 p-1.5 rounded-md mr-1 transition-colors">
+                            <i data-lucide="pencil" width="14"></i>
+                        </button>
+                        <button onclick="removeItem(${originalIndex})" class="text-red-500 hover:bg-red-100 p-1.5 rounded-md transition-colors">
+                            <i data-lucide="trash-2" width="14"></i>
+                        </button>
+                    </div>
+                `;
+                list.appendChild(li);
+            });
+            lucide.createIcons();
+        }
+
+        function renderReport() {
+            const container = document.getElementById('reportContent');
+            const footerContainer = document.getElementById('operationalFooter');
+            container.innerHTML = '';
+            let totalPlanted = 0;
+            let totalLosses = 0;
+            const displayData = getFilteredData();
+
+            if (displayData.length === 0) {
+                container.innerHTML = `<div class="p-8 text-center text-slate-400 text-xs italic leading-relaxed h-full flex flex-col items-center justify-center"><i data-lucide="sprout" class="mb-2 w-8 h-8 opacity-20"></i><span>Adicione registros de plantio.</span></div>`;
+            } else {
+                displayData.sort((a, b) => a.block.localeCompare(b.block, undefined, {numeric: true, sensitivity: 'base'}));
+                displayData.forEach((item) => { 
+                    totalPlanted += parseInt(item.planted);
+                    totalLosses += parseInt(item.losses);
+                    let locationLabel = "Bloco";
+                    if (item.crop && item.crop.toLowerCase().includes('pepino')) locationLabel = "Setor";
+
+                    // Cálculo do percentual plantado para o item
+                    const plantedPercent = item.seedlings > 0 ? (item.planted / item.seedlings) * 100 : 0;
+
+                    const html = `
+                    <div class="p-5 hover:bg-slate-50 transition-colors group border-b border-slate-50 last:border-0">
+                        <div class="flex flex-col gap-3">
+                            <div>
+                                <span class="text-sm font-bold text-slate-700 block mb-1">${locationLabel} ${item.block} • ${item.crop} <span class="text-slate-400 font-normal">(${item.variety || '-'})</span></span>
+                            </div>
+                            
+                            <!-- Grid Superior: Plantado e Perdas (50% cada) -->
+                            <div class="grid grid-cols-2 gap-2">
+                                <div class="flex flex-col items-center p-2 bg-emerald-50 rounded border border-emerald-100">
+                                    <span class="text-[9px] font-bold text-emerald-500 uppercase">Plantado</span>
+                                    <span class="font-extrabold text-emerald-700 text-sm">${item.planted.toLocaleString('pt-BR')} <span class="text-[9px] opacity-80">(${plantedPercent.toFixed(1)}%)</span></span>
+                                </div>
+                                <div class="flex flex-col items-center p-2 bg-red-50 rounded border border-red-100">
+                                    <span class="text-[9px] font-bold text-red-400 uppercase">Perdas</span>
+                                    <span class="font-bold text-red-600 text-xs">${item.losses.toLocaleString('pt-BR')} <span class="text-[9px] opacity-80">(${item.lossPercent}%)</span></span>
+                                </div>
+                            </div>
+
+                            <!-- Grid Inferior: Bandejas, Mudas, Idade (33% cada) -->
+                            <div class="grid grid-cols-3 gap-2">
+                                <div class="flex flex-col items-center p-2 bg-slate-50 rounded border border-slate-100">
+                                    <span class="text-[9px] font-bold text-slate-400 uppercase">Bandejas</span>
+                                    <span class="font-bold text-slate-600 text-xs">${item.trays || '-'}</span>
+                                </div>
+                                <div class="flex flex-col items-center p-2 bg-slate-50 rounded border border-slate-100">
+                                    <span class="text-[9px] font-bold text-slate-400 uppercase">Mudas</span>
+                                    <span class="font-bold text-slate-600 text-xs">${item.seedlings.toLocaleString('pt-BR')}</span>
+                                </div>
+                                <div class="flex flex-col items-center p-2 bg-slate-50 rounded border border-slate-100">
+                                    <span class="text-[9px] font-bold text-slate-400 uppercase">Idade</span>
+                                    <span class="font-bold text-slate-600 text-xs">${item.age ? item.age + ' dias' : '-'}</span>
+                                </div>
+                            </div>
+                        </div>
+                        ${item.notes ? `<div class="mt-3 text-[10px] text-slate-400 italic border-l-2 border-slate-200 pl-2">Obs: ${item.notes}</div>` : ''}
+                    </div>`;
+                    container.innerHTML += html;
+                });
+            }
+            
+            // Total Geral e Percentuais
+            const totalMudas = totalPlanted + totalLosses;
+            const avgLossPercent = totalMudas > 0 ? (totalLosses / totalMudas) * 100 : 0;
+            const avgPlantedPercent = totalMudas > 0 ? (totalPlanted / totalMudas) * 100 : 0;
+
+            // Alterado para incluir percentual no Total Plantado
+            footerContainer.innerHTML = `
+                <div class="bg-orange-50 rounded-xl p-4 flex items-center justify-between relative overflow-hidden">
+                    <div class="text-center flex-1">
+                        <div class="text-[10px] text-emerald-600 font-bold uppercase mb-0.5">TOTAL PLANTADO</div>
+                        <div class="text-xl font-extrabold text-emerald-800">${totalPlanted.toLocaleString('pt-BR')} <span class="text-sm font-bold text-emerald-600">(${avgPlantedPercent.toFixed(1)}%)</span></div>
+                    </div>
+                    
+                    <!-- Linha Divisória -->
+                    <div class="w-px h-8 bg-orange-200 mx-2"></div>
+
+                    <div class="text-center flex-1">
+                        <div class="text-[10px] text-red-400 font-bold uppercase mb-0.5">TOTAL PERDAS</div>
+                        <div class="text-sm font-bold text-red-600">${totalLosses.toLocaleString('pt-BR')} (${avgLossPercent.toFixed(1)}%)</div>
+                    </div>
+                </div>`;
+            
+            lucide.createIcons();
+            renderHeaderAndSummary();
+        }
+
+        // --- WHATSAPP FORMATADO ---
+        function copyToWhatsApp() {
+            const displayData = getFilteredData();
+            if (displayData.length === 0) {
+                showMessageModal('Atenção', 'Adicione registros primeiro.', 'error');
+                return;
+            }
+
+            let dateStr;
+            if (globalInfo.date) {
+                const parts = globalInfo.date.split('-');
+                dateStr = `${parts[2]}/${parts[1]}/${parts[0]}`;
+            } else {
+                dateStr = new Date().toLocaleDateString('pt-BR');
+            }
+
+            const collab = globalInfo.collaborators || '-';
+            
+            // CONSTRUÇÃO DO TEXTO
+            // Alterado de "plantio" para "Plantio"
+            let text = `Resumo do Plantio – ${dateStr}\n\n`;
+
+            displayData.forEach(item => {
+                let locationLabel = "Bloco";
+                if (item.crop && item.crop.toLowerCase().includes('pepino')) locationLabel = "Setor";
+                
+                // Formatação dos números com ponto de milhar
+                const mudasF = item.seedlings.toLocaleString('pt-BR');
+                const plantadoF = item.planted.toLocaleString('pt-BR');
+                const perdasF = item.losses.toLocaleString('pt-BR');
+
+                text += `${locationLabel}: ${item.block}\n`;
+                text += `Bandejas: ${item.trays || '-'}\n`;
+                text += `Mudas: ${mudasF}\n`;
+                text += `Plantado: ${plantadoF}\n\n`;
+                
+                text += `Cultura: ${item.crop}\n`;
+                text += `Variedade: ${item.variety || '-'}\n`;
+                text += `Perdas: ${perdasF}\n`;
+                text += `Idade: ${item.age ? item.age + ' dias' : '-'}\n\n`;
+                
+                // Como solicitado, Totais por Bloco (se houver mais de um, repete. Se for resumo único, está OK)
+                text += `Total de Unidades: ${plantadoF}\n`;
+                text += `Total de Perdas: ${perdasF}\n`;
+                text += `Percentual de Perdas: ${item.lossPercent}%\n\n`;
+                text += `--------------------------------\n\n`;
+            });
+
+            if (globalInfo.startTime && globalInfo.endTime) {
+                text += `Horário: ${globalInfo.startTime} até às ${globalInfo.endTime}`;
+                if (globalInfo.duration) text += ` (${globalInfo.duration})`;
+                text += `.\n\n`;
+            } else {
+                text += `Horário: Não informado.\n\n`;
+            }
+
+            text += `Colaboradores: ${collab}\n\n`;
+            
+            // Pega a observação do primeiro item se houver, ou geral
+            const obs = displayData.find(i => i.notes)?.notes || '';
+            text += `Observações: ${obs}`;
+
+            const textArea = document.createElement("textarea");
+            textArea.value = text;
+            textArea.style.position = "fixed";
+            textArea.style.left = "-9999px";
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            
+            try {
+                document.execCommand('copy');
+                showMessageModal('Sucesso!', 'Resumo copiado para o WhatsApp.', 'success');
+            } catch (err) {
+                showMessageModal('Erro', 'Não foi possível copiar o texto.', 'error');
+            }
+            document.body.removeChild(textArea);
+        }
+
+        // --- IMAGEM E PDF ---
+        async function downloadImage() {
+            const element = document.getElementById('report-card');
+            const btnSpan = document.querySelector('button[onclick="downloadImage()"] span');
+            const originalText = btnSpan.innerText;
+            btnSpan.innerText = "Gerando...";
+
+            try {
+                const data = getFilteredData();
+                if (data.length === 0) {
+                    showMessageModal('Atenção', 'Adicione registros primeiro.', 'error');
+                    return;
+                }
+
+                const options = {
+                    scale: 3, 
+                    useCORS: true, 
+                    allowTaint: true,
+                    scrollY: -window.scrollY,
+                    backgroundColor: '#ffffff', 
+                    windowWidth: 480,
+                    onclone: (doc) => {
+                        const el = doc.getElementById('report-card');
+                        const content = doc.getElementById('reportContent');
+                        if (el) { 
+                            el.style.width = '450px'; 
+                            el.style.maxWidth = '450px';
+                            el.style.margin = '0'; 
+                            el.style.boxShadow = 'none';
+                            el.style.border = 'none';
+                        }
+                        if (content) { 
+                            content.style.height = 'auto'; 
+                            content.style.overflow = 'visible'; 
+                        }
+                    }
+                };
+
+                const canvas = await html2canvas(element, options);
+                const imgData = canvas.toDataURL('image/png');
+                
+                const now = new Date();
+                const dateStr = now.toLocaleDateString('pt-BR').replace(/\//g, '-');
+                const link = document.createElement('a');
+                link.href = imgData;
+                link.download = `Resumo_Plantio_${dateStr}.png`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+
+            } catch (err) {
+                console.error(err);
+                showMessageModal('Erro', 'Falha ao gerar imagem.', 'error');
+            } finally {
+                btnSpan.innerText = originalText;
+            }
+        }
+
+        async function downloadPDF() {
+             const { jsPDF } = window.jspdf;
+            
+            const data = getFilteredData();
+            if (data.length === 0) {
+                showMessageModal('Atenção', 'Adicione registros primeiro.', 'error');
+                return;
+            }
+
+            document.getElementById('pdf-partner').innerText = globalInfo.partner || '-';
+            
+            let dateStr;
+            if (globalInfo.date) {
+                const parts = globalInfo.date.split('-');
+                dateStr = `${parts[2]}/${parts[1]}/${parts[0]}`;
+            }
+            document.getElementById('pdf-date').innerText = dateStr || '-';
+            document.getElementById('pdf-collaborators').innerText = globalInfo.collaborators || '-';
+
+            let timeStr = "-";
+            if(globalInfo.startTime && globalInfo.endTime) {
+                timeStr = `${globalInfo.startTime} às ${globalInfo.endTime}`;
+                if (globalInfo.duration) timeStr += ` (${globalInfo.duration})`;
+            }
+            document.getElementById('pdf-time').innerText = timeStr;
+
+            let totalPlanted = 0;
+            const tbody = document.getElementById('pdf-table-body');
+            tbody.innerHTML = '';
+            
+            data.forEach(item => {
+                totalPlanted += parseInt(item.planted);
+                let locationLabel = "Bloco";
+                if (item.crop && item.crop.toLowerCase().includes('pepino')) locationLabel = "Setor";
+                
+                // Calculate planted percentage
+                const plantedPercent = item.seedlings > 0 ? (item.planted / item.seedlings) * 100 : 0;
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${locationLabel} ${item.block}</td>
+                    <td>${item.crop} <br> <small>${item.variety || ''}</small></td>
+                    <td>${item.age || '-'}</td>
+                    <td>${item.trays || '-'}</td>
+                    <td>${item.seedlings.toLocaleString('pt-BR')}</td>
+                    <td>${item.planted.toLocaleString('pt-BR')}</td>
+                    <td>${plantedPercent.toFixed(1)}%</td>
+                    <td>${item.losses.toLocaleString('pt-BR')}</td>
+                    <td>${item.lossPercent}%</td>
+                `;
+                tbody.appendChild(tr);
+            });
+            
+            document.getElementById('pdf-total-planted').innerText = totalPlanted.toLocaleString('pt-BR');
+
+            const element = document.getElementById('technical-report-template');
+            const btnText = document.querySelector('button[onclick="downloadPDF()"] span');
+            const originalText = btnText.innerText;
+            btnText.innerText = "Gerando...";
+
+            try {
+                const canvas = await html2canvas(element, { 
+                    scale: 2, 
+                    useCORS: true, 
+                    backgroundColor: '#ffffff',
+                    windowWidth: 794,
+                    onclone: (clonedDoc) => {
+                        const clone = clonedDoc.getElementById('technical-report-template');
+                        if (clone) {
+                            clone.style.top = '0';
+                            clone.style.left = '0';
+                            clone.style.position = 'relative'; 
+                        }
+                    }
+                });
+
+                const imgData = canvas.toDataURL('image/png');
+                const pdf = new jsPDF('p', 'mm', 'a4');
+                const pdfWidth = pdf.internal.pageSize.getWidth();
+                const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+
+                pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+                pdf.save(`Relatorio_Plantio_${new Date().toISOString().slice(0,10)}.pdf`);
+            } catch (err) {
+                console.error(err);
+                showMessageModal('Erro', 'Falha ao gerar PDF.', 'error');
+            } finally {
+                btnText.innerText = originalText;
+            }
+        }
+    </script>
+</body>
+</html>
