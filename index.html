@@ -26,48 +26,6 @@
         .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         input, select { line-height: 1.5; }
         
-        /* Estilos para o Relatório Técnico (PDF) */
-        #technical-report-template {
-            width: 794px; /* A4 Width at 96dpi approx */
-            min-height: 1123px; /* A4 Height */
-            background: white;
-            padding: 40px;
-            box-sizing: border-box;
-            position: absolute;
-            top: -9999px;
-            left: -9999px;
-            font-family: 'Helvetica', 'Arial', sans-serif;
-            color: #333;
-        }
-        .tech-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-            font-size: 11px;
-        }
-        .tech-table th {
-            background-color: #f0fdf4; /* Verde claro */
-            color: #166534; /* Verde escuro */
-            font-weight: bold;
-            text-transform: uppercase;
-            padding: 8px;
-            border: 1px solid #bbf7d0;
-            text-align: left;
-        }
-        .tech-table td {
-            padding: 8px;
-            border: 1px solid #e2e8f0;
-            vertical-align: middle;
-        }
-        .tech-header {
-            border-bottom: 2px solid #166534;
-            padding-bottom: 20px;
-            margin-bottom: 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
         .fade-in {
             animation: fadeIn 0.2s ease-in-out;
         }
@@ -101,26 +59,24 @@
                 <span>Imagem</span>
             </button>
 
-            <!-- Botão PDF -->
+            <!-- Botão Relatório Técnico -->
             <button id="pdfBtn" type="button" onclick="downloadPDF()" class="flex-1 md:flex-none flex items-center justify-center gap-2 px-3 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-xs font-bold shadow-lg shadow-red-600/20 transition-all active:scale-95 active:bg-red-800 whitespace-nowrap">
                 <i data-lucide="file-down" class="w-4 h-4"></i>
-                <span>Relatório PDF</span>
+                <span>Relatório Técnico</span>
             </button>
         </div>
     </div>
 
     <div class="container mx-auto p-4 flex flex-col lg:flex-row gap-8 mt-4">
         
-        <!-- COLUNA DA ESQUERDA: CONTROLES -->
+        <!-- COLUNA DA ESQUERDA -->
         <div class="w-full lg:w-2/5 space-y-4">
             
-            <!-- 1. DADOS GERAIS (DATA, LOCAL, COLABORADORES) -->
             <div id="generalDataCard" class="bg-emerald-50 p-5 rounded-2xl shadow-sm border border-emerald-100 transition-colors">
                 <h2 class="text-sm font-bold text-emerald-800 mb-3 flex items-center gap-2">
                     <i data-lucide="calendar-check" class="text-emerald-600"></i> Dados Gerais do Plantio
                 </h2>
                 
-                <!-- GERAL -->
                 <div class="grid grid-cols-2 gap-3 mb-5">
                     <div class="relative">
                         <label class="text-[10px] font-bold text-emerald-600 uppercase tracking-wide mb-1 block">Local <span class="text-red-500">*</span></label>
@@ -129,48 +85,36 @@
                             <option value="SPG Oásis">SPG Oásis</option>
                             <option value="SPG Sede">SPG Sede</option>
                         </select>
-                        <span id="error-partner" class="text-[9px] text-red-500 font-bold hidden absolute -bottom-4 left-0">Preencha este campo</span>
+                        <span id="error-partner" class="text-[9px] text-red-500 font-bold hidden absolute -bottom-4 left-0">Preencha</span>
                     </div>
                     <div class="relative">
                         <label class="text-[10px] font-bold text-emerald-600 uppercase tracking-wide mb-1 block">Data <span class="text-red-500">*</span></label>
                         <input type="date" id="appDate" required onchange="clearError('appDate'); updateGlobalState()" class="w-full p-2 border border-emerald-200 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none text-sm bg-white text-slate-600">
-                        <span id="error-appDate" class="text-[9px] text-red-500 font-bold hidden absolute -bottom-4 left-0">Preencha este campo</span>
+                        <span id="error-appDate" class="text-[9px] text-red-500 font-bold hidden absolute -bottom-4 left-0">Preencha</span>
                     </div>
                 </div>
 
-                <!-- OPERACIONAL -->
                 <div class="mb-5">
-                    <div class="relative">
-                        <label class="text-[10px] font-bold text-slate-500 mb-1 block">Colaboradores (Qtd)</label>
-                        <input type="number" id="collaborators" placeholder="Ex: 5" oninput="updateGlobalState()" class="w-full p-2 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-emerald-500 outline-none">
-                    </div>
+                    <label class="text-[10px] font-bold text-slate-500 mb-1 block">Colaboradores (Qtd)</label>
+                    <input type="number" id="collaborators" placeholder="Ex: 5" oninput="updateGlobalState()" class="w-full p-2 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-emerald-500 outline-none">
                 </div>
 
                 <div class="grid grid-cols-3 gap-2 mb-3">
-                    <div class="relative">
+                    <div>
                         <label class="text-[10px] font-bold text-slate-500 mb-1 block">Início</label>
-                        <input type="time" id="startTime" onchange="clearError('startTime'); calculateDuration(); updateGlobalState();" class="w-full p-2 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-emerald-500 outline-none">
-                        <span id="error-startTime" class="text-[9px] text-red-500 font-bold hidden absolute -bottom-4 left-0">Preencha este campo</span>
+                        <input type="time" id="startTime" onchange="calculateDuration(); updateGlobalState();" class="w-full p-2 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-emerald-500 outline-none">
                     </div>
-                    <div class="relative">
+                    <div>
                         <label class="text-[10px] font-bold text-slate-500 mb-1 block">Fim</label>
-                        <input type="time" id="endTime" onchange="clearError('endTime'); calculateDuration(); updateGlobalState();" class="w-full p-2 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-emerald-500 outline-none">
-                        <span id="error-endTime" class="text-[9px] text-red-500 font-bold hidden absolute -bottom-4 left-0">Preencha este campo</span>
+                        <input type="time" id="endTime" onchange="calculateDuration(); updateGlobalState();" class="w-full p-2 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-emerald-500 outline-none">
                     </div>
                     <div>
                         <label class="text-[10px] font-bold text-slate-500 mb-1 block">Total</label>
-                        <input type="text" id="totalDuration" readonly placeholder="--:--" class="w-full p-2 border border-slate-200 bg-slate-100 rounded-lg text-sm text-slate-600 focus:outline-none font-semibold">
+                        <input type="text" id="totalDuration" readonly placeholder="--:--" class="w-full p-2 border border-slate-200 bg-slate-100 rounded-lg text-sm text-slate-600 font-semibold">
                     </div>
-                </div>
-                
-                <!-- AVISO DE ERRO DENTRO DO CARD -->
-                <div id="generalDataError" class="hidden mt-3 bg-red-50 border border-red-200 text-red-600 px-3 py-2 rounded-lg text-xs flex items-center gap-2 animate-pulse">
-                    <i data-lucide="alert-triangle" width="16" class="shrink-0"></i>
-                    <span>Por favor, preencha o <b>Local</b> e a <b>Data</b> acima para continuar.</span>
                 </div>
             </div>
 
-            <!-- 2. FORMULÁRIO DE LANÇAMENTO -->
             <div id="formContainer" class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 transition-colors duration-300">
                 <div class="flex justify-between items-center mb-4">
                     <h2 id="formTitle" class="text-lg font-bold text-slate-800 flex items-center gap-2">
@@ -182,8 +126,6 @@
                 </div>
                 
                 <form id="appForm" onsubmit="addItem(event)" class="space-y-4" novalidate>
-                    
-                    <!-- CULTURA E VARIEDADE -->
                     <div class="grid grid-cols-2 gap-3">
                         <div class="relative">
                             <label class="text-xs font-bold text-slate-500 uppercase mb-1 block">Cultura</label>
@@ -193,59 +135,41 @@
                                 <option value="Pepino">Pepino</option>
                                 <option value="Outros">Outros</option>
                             </select>
-                            
-                            <!-- INPUT CULTURA (OVERLAY) -->
                             <div id="crop-custom-div" class="hidden relative w-full fade-in">
-                                <input type="text" id="otherCropInput" oninput="clearError('otherCropInput')" class="w-full p-2 pr-8 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-emerald-500 outline-none" placeholder="Qual cultura?">
-                                <button type="button" onclick="resetCropField(); handleCropChange();" class="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-red-500">
-                                    <i data-lucide="x-circle" width="14"></i>
-                                </button>
+                                <input type="text" id="otherCropInput" class="w-full p-2 pr-8 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-emerald-500 outline-none" placeholder="Qual cultura?">
+                                <button type="button" onclick="resetCropField(); handleCropChange();" class="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400"><i data-lucide="x-circle" width="14"></i></button>
                             </div>
-                            <span id="error-crop" class="text-[9px] text-red-500 font-bold hidden absolute -bottom-4 left-0">Preencha este campo</span>
                         </div>
-
                         <div class="relative">
                             <label class="text-xs font-bold text-slate-500 uppercase mb-1 block">Variedade</label>
-                            
-                            <!-- Input para Texto Livre (Padrão/Outros) -->
                             <input type="text" id="varietyInput" placeholder="Ex: BRO" class="w-full p-2 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-emerald-500 outline-none">
-                            
-                            <!-- Select para Listas Definidas -->
                             <select id="varietySelect" onchange="toggleOtherVarietyInput()" class="hidden w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none text-sm bg-white">
                                 <option value="">Selecione...</option>
                             </select>
-
-                            <!-- Overlay Input para 'Outra' na Lista -->
                             <div id="variety-custom-div" class="hidden relative w-full fade-in">
-                                <input type="text" id="otherVarietyInput" class="w-full p-2 pr-8 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-emerald-500 outline-none" placeholder="Qual variedade?">
-                                <button type="button" onclick="resetVarietyField()" class="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-red-500">
-                                    <i data-lucide="x-circle" width="14"></i>
-                                </button>
+                                <input type="text" id="otherVarietyInput" class="w-full p-2 pr-8 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-emerald-500 outline-none" placeholder="Qual?">
+                                <button type="button" onclick="resetVarietyField()" class="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400"><i data-lucide="x-circle" width="14"></i></button>
                             </div>
                         </div>
                     </div>
 
-                    <!-- BLOCO, CICLO E IDADE -->
                     <div class="grid grid-cols-3 gap-3">
                          <div class="relative">
                             <label id="blockLabel" class="text-[10px] font-bold text-slate-500 uppercase mb-1 block">Nº Bloco</label>
-                            <input type="text" id="blockId" required oninput="clearError('blockId')" placeholder="Ex: 06" class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none text-sm bg-white">
-                            <select id="blockSelect" onchange="clearError('blockSelect')" class="hidden w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none text-sm bg-white">
-                                <option value="">Selecione...</option>
-                            </select>
+                            <input type="text" id="blockId" required oninput="clearError('blockId')" placeholder="Ex: 06" class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none text-sm bg-white text-center">
+                            <select id="blockSelect" onchange="clearError('blockSelect')" class="hidden w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none text-sm bg-white"></select>
                             <span id="error-blockId" class="text-[9px] text-red-500 font-bold hidden absolute -bottom-4 left-0">Preencha</span>
                         </div>
                         <div class="relative">
                             <label class="text-[10px] font-bold text-slate-500 uppercase mb-1 block">Ciclo</label>
-                            <input type="text" id="cycle" placeholder="Ex: 01" class="w-full p-2 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-emerald-500 outline-none">
+                            <input type="text" id="cycle" placeholder="Ex: 01" class="w-full p-2 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-emerald-500 outline-none text-center">
                         </div>
                         <div class="relative">
                             <label class="text-[10px] font-bold text-slate-500 uppercase mb-1 block">Idade (dias)</label>
-                            <input type="number" id="plantAge" placeholder="Ex: 30" class="w-full p-2 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-emerald-500 outline-none">
+                            <input type="number" id="plantAge" placeholder="Ex: 30" class="w-full p-2 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-emerald-500 outline-none text-center">
                         </div>
                     </div>
 
-                    <!-- BANDEJAS, MUDAS E PLANTADO -->
                     <div class="bg-slate-50 p-3 rounded-lg border border-slate-100 space-y-3">
                         <div class="grid grid-cols-3 gap-2">
                              <div>
@@ -258,14 +182,11 @@
                                 <span id="error-totalSeedlings" class="text-[9px] text-red-500 font-bold hidden absolute -bottom-4 left-0">Preencha</span>
                             </div>
                         </div>
-
                         <div class="relative">
                             <label class="text-[10px] font-bold text-emerald-600 mb-1 block">Plantado (Efetivo)</label>
                             <input type="text" inputmode="numeric" id="plantedAmount" required oninput="formatNumberInput(this); clearError('plantedAmount'); calculateLoss()" placeholder="Ex: 14.500" class="w-full p-2 border border-emerald-200 bg-emerald-50 rounded-lg text-sm text-emerald-800 font-bold focus:outline-none focus:ring-2 focus:ring-emerald-500">
                             <span id="error-plantedAmount" class="text-[9px] text-red-500 font-bold hidden absolute -bottom-4 left-0">Preencha</span>
                         </div>
-
-                        <!-- RESULTADOS CALCULADOS -->
                         <div class="grid grid-cols-2 gap-3 pt-2 border-t border-slate-200">
                             <div>
                                 <label class="text-[9px] font-bold text-red-400 uppercase">Perdas</label>
@@ -278,236 +199,120 @@
                         </div>
                     </div>
                     
-                    <div class="mt-2">
+                    <div>
                         <label class="text-[10px] font-bold text-slate-500 mb-1 block">Observações (Opcional)</label>
                         <input type="text" id="notes" placeholder="Ex: Mudas pequenas..." class="w-full p-2 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-emerald-500 outline-none">
                    </div>
 
-                   <!-- BOTÕES DE AÇÃO: ADICIONAR VARIEDADE E FINALIZAR BLOCO -->
                    <div class="flex gap-2 mt-4">
-                        <button type="button" id="btnAddVariety" onclick="addSameBlock(event)" class="flex-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-bold py-3 rounded-xl transition-all flex justify-center items-center gap-1 active:scale-95 border border-emerald-200">
+                        <button type="button" id="btnAddVariety" onclick="addSameBlock(event)" class="flex-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-bold py-3 rounded-xl transition-all flex justify-center items-center gap-1 border border-emerald-200 active:scale-95">
                             <i data-lucide="plus" class="w-4 h-4"></i> <span class="text-xs sm:text-sm">+ Variedade</span>
                         </button>
-                        <button type="submit" id="submitBtn" class="flex-1 bg-slate-800 hover:bg-slate-900 text-white font-bold py-3 rounded-xl transition-all flex justify-center items-center gap-2 active:scale-95 shadow-lg shadow-slate-800/20">
+                        <button type="submit" id="submitBtn" class="flex-1 bg-slate-800 hover:bg-slate-900 text-white font-bold py-3 rounded-xl transition-all flex justify-center items-center gap-2 shadow-lg shadow-slate-800/20 active:scale-95">
                             <i data-lucide="check" class="w-4 h-4"></i> <span class="text-xs sm:text-sm">Finalizar Bloco</span>
                         </button>
                    </div>
                 </form>
             </div>
 
-            <!-- Lista de Itens -->
             <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
                 <div class="flex justify-between items-center mb-4">
                     <h3 class="text-sm font-bold text-slate-700">Registros do Dia</h3>
                     <button onclick="showClearAllModal()" class="text-xs text-red-500 hover:text-red-700 font-bold underline">Limpar Tudo</button>
                 </div>
-                <ul id="itemsList" class="space-y-2 text-sm text-slate-600">
-                    <!-- JS -->
-                </ul>
+                <ul id="itemsList" class="space-y-2 text-sm text-slate-600"></ul>
             </div>
         </div>
 
         <!-- PREVIEW -->
         <div class="w-full lg:w-3/5 flex flex-col bg-slate-200/50 p-4 rounded-3xl border border-slate-300/50 min-h-[calc(100vh-6rem)]">
-            
             <div id="report-card" class="w-full flex-1 flex flex-col bg-white shadow-2xl overflow-hidden border border-slate-100 relative">
                 
-                <!-- Cabeçalho (Azul Meio Verde / Teal) -->
                 <div class="bg-gradient-to-br from-teal-600 to-teal-800 p-6 text-white relative overflow-hidden flex flex-col justify-start shrink-0 gap-3 antialiased">
                     <img src="https://i.imgur.com/f7UnnL0.png" alt="Logo SPG" class="absolute top-4 right-4 w-24 h-24 z-0" style="image-rendering: -webkit-optimize-contrast;">
                     <div class="relative z-10 w-full pr-24"> 
-                        <h2 id="reportTitle" class="text-sm font-bold leading-snug tracking-normal">
-                            <!-- Injetado via JS -->
-                        </h2>
-                        <div class="mt-3 pt-3 border-t border-white/20 flex flex-col gap-1">
-                             <span id="headerDateTime" class="text-xs font-medium text-teal-100 block opacity-90 tracking-wide">
-                                <!-- Injetado via JS -->
-                            </span>
+                        <h2 id="reportTitle" class="text-sm font-bold leading-snug tracking-normal"></h2>
+                        <div class="mt-3 pt-3 border-t border-white/20">
+                             <span id="headerDateTime" class="text-xs font-medium text-teal-100 block opacity-90 tracking-wide"></span>
                         </div>
                     </div>
                 </div>
                 
-                <!-- 1. BARRA OPERACIONAL -->
-                <div id="operationalBar" class="bg-white border-b border-slate-100 px-6 py-4 flex justify-between items-center">
-                    <!-- Conteúdo Injetado via JS -->
-                </div>
+                <div id="operationalBar" class="bg-white border-b border-slate-100 px-6 py-4 flex justify-between items-center"></div>
 
-                <!-- Painel de Totais -->
-                <div id="operationalFooter" class="bg-white border-b border-slate-200 p-4 shrink-0 z-10">
-                     <!-- Conteúdo injetado via JS -->
-                </div>
+                <div id="operationalFooter" class="bg-white border-b border-slate-200 p-4 shrink-0 z-10"></div>
 
-                <!-- Conteúdo (Lista) -->
                 <div id="reportContent" class="flex-1 overflow-y-auto">
-                    <div class="p-8 text-center text-slate-400 text-xs italic leading-relaxed h-full flex items-center justify-center">Utilize o formulário para registrar os plantios.</div>
+                    <div class="p-8 text-center text-slate-400 text-xs italic h-full flex items-center justify-center">Adicione registros para gerar o resumo.</div>
                 </div>
 
-                <!-- Rodapé da Marca -->
                 <div class="bg-slate-100 p-3 text-center border-t border-slate-200 shrink-0">
                     <div class="flex justify-center items-center gap-2 text-[10px] text-slate-400 font-medium uppercase tracking-widest leading-relaxed">
                         SPG • Controle de Plantio
                     </div>
                 </div>
-
             </div>
         </div>
     </div>
 
-    <!-- ELEMENTO OCULTO PARA O RELATÓRIO TÉCNICO PDF -->
-    <div id="technical-report-template">
-        <div class="tech-header">
-            <div>
-                <h1 style="font-size: 24px; font-weight: bold; color: #1e293b; margin: 0;">RELATÓRIO DE TRANSPLANTIO</h1>
-                <p style="font-size: 14px; color: #64748b; margin: 5px 0 0 0;">Controle de Plantio • SPG</p>
-            </div>
-            <img src="https://i.imgur.com/f7UnnL0.png" style="height: 80px; width: auto;">
-        </div>
-
-        <div style="display: flex; justify-content: space-between; margin-bottom: 20px; font-size: 12px; border: 1px solid #e2e8f0; padding: 15px; background-color: #f8fafc;">
-            <div style="line-height: 1.8;">
-                <div><strong>Local:</strong> <span id="pdf-partner"></span></div>
-                <div><strong>Data:</strong> <span id="pdf-date"></span> <span id="pdf-week"></span></div>
-            </div>
-            <div style="line-height: 1.8;">
-                <div><strong>Colaboradores:</strong> <span id="pdf-collaborators"></span></div>
-                <div><strong>Horário:</strong> <span id="pdf-time"></span></div>
-            </div>
-            <div style="line-height: 1.8; text-align: right;">
-                 <div><strong>TOTAL PLANTADO:</strong> <span id="pdf-total-planted"></span></div>
-            </div>
-        </div>
-
-        <h3 style="font-size: 14px; font-weight: bold; color: #166534; border-bottom: 1px solid #bbf7d0; padding-bottom: 5px; margin-bottom: 10px;">DETALHAMENTO</h3>
-        
-        <table class="tech-table">
-            <thead>
-                <tr>
-                    <th style="width: 10%;">Bloco/Ciclo</th>
-                    <th style="width: 15%;">Cultura/Var</th>
-                    <th style="width: 8%;">Idade</th>
-                    <th style="width: 8%;">Bandejas</th>
-                    <th style="width: 12%; font-size: 9px;">Mudas Total</th>
-                    <th style="width: 12%;">Plantado</th>
-                    <th style="width: 10%;">% Plant.</th>
-                    <th style="width: 12%;">Perdas</th>
-                    <th style="width: 13%;">% Perda</th>
-                </tr>
-            </thead>
-            <tbody id="pdf-table-body">
-                <!-- Linhas injetadas via JS -->
-            </tbody>
-        </table>
-
-        <div style="margin-top: 60px; display: flex; justify-content: space-between; page-break-inside: avoid;">
-            <div style="width: 40%; border-top: 1px solid #333; text-align: center; font-size: 11px; padding-top: 5px;">
-                Responsável Técnico
-            </div>
-            <div style="width: 40%; border-top: 1px solid #333; text-align: center; font-size: 11px; padding-top: 5px;">
-                Responsável Plantio
-            </div>
-        </div>
-        
-        <div style="position: absolute; bottom: 30px; width: 100%; text-align: center; font-size: 10px; color: #94a3b8; border-top: 1px solid #e2e8f0; padding-top: 10px;">
-            Documento gerado eletronicamente pelo sistema SPG.
-        </div>
-    </div>
-    
     <!-- MODAIS -->
     <div id="clearAllModal" class="fixed inset-0 bg-black/50 z-50 hidden flex justify-center items-center backdrop-blur-sm transition-opacity duration-300">
         <div class="bg-white rounded-xl shadow-2xl p-6 w-11/12 max-w-sm transform transition-all scale-100">
             <div class="text-center mb-5">
-                <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4">
-                    <i data-lucide="alert-triangle" class="h-6 w-6 text-red-600"></i>
-                </div>
+                <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4"><i data-lucide="alert-triangle" class="h-6 w-6 text-red-600"></i></div>
                 <h3 class="text-lg font-bold text-slate-800">Limpar Tudo?</h3>
-                <p class="text-sm text-slate-500 mt-2">Tem certeza que deseja apagar todos os registros? Esta ação não pode ser desfeita.</p>
+                <p class="text-sm text-slate-500 mt-2">Tem certeza que deseja apagar todos os registros?</p>
             </div>
             <div class="flex gap-3">
-                <button onclick="hideClearAllModal()" class="flex-1 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-lg text-sm transition-colors">Cancelar</button>
-                <button onclick="confirmClearAll()" class="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg text-sm transition-colors">Sim, Limpar</button>
+                <button onclick="hideClearAllModal()" class="flex-1 px-4 py-2 bg-slate-100 text-slate-700 font-bold rounded-lg text-sm">Cancelar</button>
+                <button onclick="confirmClearAll()" class="flex-1 px-4 py-2 bg-red-600 text-white font-bold rounded-lg text-sm">Sim, Limpar</button>
             </div>
         </div>
     </div>
 
     <div id="messageModal" class="fixed inset-0 bg-black/50 z-50 hidden flex justify-center items-center backdrop-blur-sm transition-opacity duration-300">
         <div class="bg-white rounded-xl shadow-2xl p-6 w-11/12 max-w-sm transform transition-all scale-100 text-center">
-            <div id="msgIconContainer" class="mx-auto flex items-center justify-center h-12 w-12 rounded-full mb-4">
-            </div>
+            <div id="msgIconContainer" class="mx-auto flex items-center justify-center h-12 w-12 rounded-full mb-4"></div>
             <h3 id="msgTitle" class="text-lg font-bold text-slate-800"></h3>
             <p id="msgText" class="text-sm text-slate-500 mt-2 mb-4"></p>
-            <button onclick="hideMessageModal()" class="w-full px-4 py-2 bg-slate-800 hover:bg-slate-900 text-white font-bold rounded-lg text-sm transition-colors">OK</button>
+            <button onclick="hideMessageModal()" class="w-full px-4 py-2 bg-slate-800 text-white font-bold rounded-lg text-sm">OK</button>
         </div>
     </div>
 
-    <!-- JAVASCRIPT LOGIC -->
     <script>
         let appData = [];
         let editingIndex = -1;
 
-        const varietiesCauliflower = [
-            "26972 RZ", "Alcala", "Champagne Snow", "Copacabana", "Ponto Perde", 
-            "Serena", "SF-1758", "SF-1758 F1", "Supremo", "Tirsuli", 
-            "Vereda", "Vereda F1", "Vereda RZ", "Vigor F1"
-        ];
-        
-        const varietiesBroccoli = [
-            "Bragantino F1", "BRO 68 Syngenta", "BRO 68 Syngenta F1", "Claramont", 
-            "Master TSV", "PHAR LAP", "Phar Lap F1", "Sakata Jiraya F1"
-        ];
+        const varietiesCauliflower = ["26972 RZ", "Alcala", "Champagne Snow", "Copacabana", "Ponto Perde", "Serena", "SF-1758", "Supremo", "Tirsuli", "Vereda", "Vereda F1", "Vigor F1"];
+        const varietiesBroccoli = ["Bragantino F1", "BRO 68 Syngenta", "Claramont", "Master TSV", "PHAR LAP", "Sakata Jiraya F1"];
+        const varietiesCucumber = ["AGX40404", "Aikido", "Tikara", "Tsuyataro"];
 
-        const varietiesCucumber = [
-            "AGX40404", "Aikido", "Tikara", "Tsuyataro"
-        ];
-
-        let globalInfo = {
-            partner: '',
-            date: '',
-            collaborators: '',
-            startTime: '',
-            endTime: '',
-            duration: '',
-            hoursDecimal: 0
-        };
+        let globalInfo = { partner: '', date: '', collaborators: '', startTime: '', endTime: '', duration: '' };
 
         lucide.createIcons();
         updateDynamicTitle();
-        calculateDuration();
-        updateGlobalState();
         handleCropChange();
 
         function toggleError(id, show) {
             const el = document.getElementById(id);
-            const err = document.getElementById('error-' + id);
             if (!el) return; 
-            if(show) {
-                el.classList.add('border-red-500', 'ring-1', 'ring-red-500');
-                if(err) err.classList.remove('hidden');
-            } else {
-                el.classList.remove('border-red-500', 'ring-1', 'ring-red-500');
-                if(err) err.classList.add('hidden');
-            }
+            if(show) el.classList.add('border-red-500', 'ring-1', 'ring-red-500');
+            else el.classList.remove('border-red-500', 'ring-1', 'ring-red-500');
         }
         
-        function clearError(id) {
-            toggleError(id, false);
-        }
+        function clearError(id) { toggleError(id, false); }
 
         function validateHeader() {
             let isValid = true;
-            if(!document.getElementById('partner').value) { toggleError('partner', true); isValid = false; } else { toggleError('partner', false); }
-            if(!document.getElementById('appDate').value) { toggleError('appDate', true); isValid = false; } else { toggleError('appDate', false); }
-            const start = document.getElementById('startTime').value;
-            const end = document.getElementById('endTime').value;
-            if(!start) { toggleError('startTime', true); isValid = false; } else { toggleError('startTime', false); }
-            if(!end) { toggleError('endTime', true); isValid = false; } else { toggleError('endTime', false); }
+            if(!document.getElementById('partner').value) { toggleError('partner', true); isValid = false; }
+            if(!document.getElementById('appDate').value) { toggleError('appDate', true); isValid = false; }
             return isValid;
         }
 
         function formatNumberInput(input) {
             let value = input.value.replace(/\D/g, '');
             if (value === '') { input.value = ''; return; }
-            value = parseInt(value).toLocaleString('pt-BR');
-            input.value = value;
+            input.value = parseInt(value).toLocaleString('pt-BR');
         }
 
         function updateGlobalState() {
@@ -517,7 +322,6 @@
             globalInfo.startTime = document.getElementById('startTime').value;
             globalInfo.endTime = document.getElementById('endTime').value;
             globalInfo.duration = document.getElementById('totalDuration').value;
-
             updateDynamicTitle();
             renderList();
             renderReport();
@@ -526,11 +330,8 @@
         function calculateSeedlingsFromTrays() {
             const trays = parseInt(document.getElementById('trays').value) || 0;
             const seedlingsInput = document.getElementById('totalSeedlings');
-            if(trays > 0) {
-                const total = trays * 200;
-                seedlingsInput.value = total.toLocaleString('pt-BR');
-                clearError('totalSeedlings');
-            } else { seedlingsInput.value = ''; }
+            if(trays > 0) seedlingsInput.value = (trays * 200).toLocaleString('pt-BR');
+            else seedlingsInput.value = '';
             calculateLoss();
         }
 
@@ -540,34 +341,25 @@
             const plantado = parseFormatted(document.getElementById('plantedAmount').value);
             const displayLoss = document.getElementById('displayLoss');
             const displayPercent = document.getElementById('displayLossPercent');
-
             if (mudas > 0 && plantado > 0) {
                 const perdas = mudas - plantado;
-                const percent = (perdas / mudas) * 100;
                 displayLoss.innerText = perdas.toLocaleString('pt-BR');
-                displayPercent.innerText = percent.toFixed(0) + '%';
-                if(perdas < 0) { displayLoss.innerText = "Erro"; displayPercent.innerText = "-"; }
+                displayPercent.innerText = ((perdas / mudas) * 100).toFixed(0) + '%';
             } else { displayLoss.innerText = "-"; displayPercent.innerText = "-"; }
         }
 
         function calculateDuration() {
             const start = document.getElementById('startTime').value;
             const end = document.getElementById('endTime').value;
-            const totalInput = document.getElementById('totalDuration');
             if (start && end) {
                 const startD = new Date(`2000-01-01T${start}`);
                 const endD = new Date(`2000-01-01T${end}`);
                 let diffMs = endD - startD;
                 if (diffMs < 0) diffMs += 24 * 60 * 60 * 1000;
-                const totalMinutes = Math.floor(diffMs / 60000);
-                const hours = Math.floor(totalMinutes / 60);
-                const minutes = totalMinutes % 60;
-                globalInfo.hoursDecimal = totalMinutes / 60;
-                let durationStr = "";
-                if (hours > 0) durationStr += `${hours}h `;
-                durationStr += `${minutes}min`;
-                totalInput.value = durationStr;
-            } else { totalInput.value = ""; }
+                const hours = Math.floor(diffMs / 3600000);
+                const minutes = Math.floor((diffMs % 3600000) / 60000);
+                document.getElementById('totalDuration').value = `${hours}h ${minutes}min`;
+            } else document.getElementById('totalDuration').value = "";
             updateGlobalState();
         }
 
@@ -581,10 +373,8 @@
             const varietyCustomDiv = document.getElementById('variety-custom-div');
 
             let cropValue = select.value;
-            if (select.classList.contains('hidden')) { cropValue = 'Outros'; }
-
-            let useSelect = false;
             let options = [];
+            let useSelect = false;
 
             if (cropValue === 'Pepino') { blockLabel.innerText = 'Nº Setor'; useSelect = true; options = ['1', '2', '3', '4']; }
             else if (cropValue === 'Brócolis' || cropValue === 'Couve-Flor') { 
@@ -595,45 +385,30 @@
 
             if (useSelect) {
                 blockInput.classList.add('hidden');
-                blockInput.required = false;
-                if(blockSelect) {
-                    blockSelect.classList.remove('hidden');
-                    blockSelect.required = true;
-                    const currentVal = blockSelect.value;
-                    blockSelect.innerHTML = '<option value="">Selecione...</option>';
-                    options.forEach(opt => {
-                        const el = document.createElement('option');
-                        el.value = opt; el.innerText = opt;
-                        if(opt === currentVal) el.selected = true;
-                        blockSelect.appendChild(el);
-                    });
-                }
+                blockSelect.classList.remove('hidden');
+                blockSelect.innerHTML = '<option value="">Selecione...</option>';
+                options.forEach(opt => {
+                    const el = document.createElement('option');
+                    el.value = opt; el.innerText = opt;
+                    blockSelect.appendChild(el);
+                });
             } else {
                 blockInput.classList.remove('hidden');
-                blockInput.required = true;
-                if(blockSelect) { blockSelect.classList.add('hidden'); blockSelect.required = false; }
+                blockSelect.classList.add('hidden');
             }
 
-            let varietyOptions = [];
-            let useVarietySelect = false;
-            if (cropValue === 'Brócolis') { varietyOptions = varietiesBroccoli; useVarietySelect = true; }
-            else if (cropValue === 'Couve-Flor') { varietyOptions = varietiesCauliflower; useVarietySelect = true; }
-            else if (cropValue === 'Pepino') { varietyOptions = varietiesCucumber; useVarietySelect = true; }
-
-            if(useVarietySelect) {
+            let vOptions = cropValue === 'Brócolis' ? varietiesBroccoli : (cropValue === 'Couve-Flor' ? varietiesCauliflower : (cropValue === 'Pepino' ? varietiesCucumber : []));
+            if(vOptions.length > 0) {
                 varietyInput.classList.add('hidden');
                 varietySelect.classList.remove('hidden');
-                const currentVar = varietySelect.value;
                 varietySelect.innerHTML = '<option value="">Selecione...</option>';
-                varietyOptions.forEach(v => {
+                vOptions.forEach(v => {
                     const el = document.createElement('option');
                     el.value = v; el.innerText = v;
-                    if(v === currentVar) el.selected = true;
                     varietySelect.appendChild(el);
                 });
                 const otherOpt = document.createElement('option');
                 otherOpt.value = 'Outra'; otherOpt.innerText = 'Outra...';
-                if(currentVar === 'Outra') otherOpt.selected = true;
                 varietySelect.appendChild(otherOpt);
             } else {
                 varietySelect.classList.add('hidden');
@@ -644,83 +419,62 @@
         
         function toggleOtherCropInput() {
             const select = document.getElementById('crop');
-            const customDiv = document.getElementById('crop-custom-div');
-            const customInput = document.getElementById('otherCropInput');
-            if (select.value === 'Outros') { select.classList.add('hidden'); customDiv.classList.remove('hidden'); customInput.focus(); }
+            if (select.value === 'Outros') {
+                select.classList.add('hidden');
+                document.getElementById('crop-custom-div').classList.remove('hidden');
+                document.getElementById('otherCropInput').focus();
+            }
         }
 
         function resetCropField() {
-            const select = document.getElementById('crop');
-            const customDiv = document.getElementById('crop-custom-div');
-            const customInput = document.getElementById('otherCropInput');
-            customInput.value = '';
-            select.value = 'Brócolis';
-            select.selectedIndex = 0;
-            select.classList.remove('hidden');
-            customDiv.classList.add('hidden');
-            handleCropChange(); 
+            document.getElementById('crop').classList.remove('hidden');
+            document.getElementById('crop').selectedIndex = 0;
+            document.getElementById('crop-custom-div').classList.add('hidden');
+            handleCropChange();
         }
 
         function toggleOtherVarietyInput() {
-            const select = document.getElementById('varietySelect');
-            const customDiv = document.getElementById('variety-custom-div');
-            const customInput = document.getElementById('otherVarietyInput');
-            if (select.value === 'Outra') { select.classList.add('hidden'); customDiv.classList.remove('hidden'); customInput.focus(); }
+            if (document.getElementById('varietySelect').value === 'Outra') {
+                document.getElementById('varietySelect').classList.add('hidden');
+                document.getElementById('variety-custom-div').classList.remove('hidden');
+                document.getElementById('otherVarietyInput').focus();
+            }
         }
 
         function resetVarietyField() {
-            const select = document.getElementById('varietySelect');
-            const customDiv = document.getElementById('variety-custom-div');
-            const customInput = document.getElementById('otherVarietyInput');
-            customInput.value = '';
-            select.selectedIndex = 0;
-            select.classList.remove('hidden');
-            customDiv.classList.add('hidden');
+            document.getElementById('varietySelect').classList.remove('hidden');
+            document.getElementById('varietySelect').selectedIndex = 0;
+            document.getElementById('variety-custom-div').classList.add('hidden');
         }
 
         function getFilteredData() {
-            const currentPartner = globalInfo.partner || document.getElementById('partner').value; 
-            if(!currentPartner) return [];
-            return appData.filter(item => item.partner === currentPartner);
+            const selectedPartner = document.getElementById('partner').value;
+            if(!selectedPartner) return [];
+            return appData.filter(item => item.partner === selectedPartner);
         }
 
         function getWeekNumber(d) {
             d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
             d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
-            var yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
-            return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+            return Math.ceil((((d - new Date(Date.UTC(d.getUTCFullYear(), 0, 1))) / 86400000) + 1) / 7);
         }
 
         function updateDynamicTitle() {
-            const displayPartner = globalInfo.partner || 'Local';
-            document.getElementById('reportTitle').innerHTML = `Resumo de Transplantio<br>${displayPartner}`;
-
-            const dateElement = document.getElementById('headerDateTime');
+            const partner = globalInfo.partner || 'Local';
+            document.getElementById('reportTitle').innerHTML = `Resumo de Transplantio<br>${partner}`;
+            const dateEl = document.getElementById('headerDateTime');
             if (globalInfo.date) {
                 const parts = globalInfo.date.split('-');
-                const dateObj = new Date(parts[0], parts[1] - 1, parts[2]);
-                const weekNum = getWeekNumber(dateObj);
-                dateElement.innerText = `Data: ${parts[2]}/${parts[1]}/${parts[0]} - Semana ${weekNum}`;
-            } else { dateElement.innerText = "Data:"; }
+                const dObj = new Date(parts[0], parts[1] - 1, parts[2]);
+                dateEl.innerText = `Data: ${parts[2]}/${parts[1]}/${parts[0]} - Semana ${getWeekNumber(dObj)}`;
+            } else dateEl.innerText = "Data:";
             
             const opBar = document.getElementById('operationalBar');
             if (opBar) {
                 const collab = globalInfo.collaborators || '-';
-                let timeInfo = "00:00 até 00:00";
-                let durationInfo = "";
-                if(globalInfo.startTime && globalInfo.endTime) {
-                    timeInfo = `${globalInfo.startTime} até às ${globalInfo.endTime}`;
-                    if(globalInfo.duration) durationInfo = `(${globalInfo.duration})`;
-                }
                 opBar.innerHTML = `
-                    <div class="flex flex-col">
-                        <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">Operacional</span>
-                        <span class="text-sm font-bold text-slate-700">Colaboradores: ${collab}</span>
-                    </div>
-                    <div class="flex flex-col items-end">
-                        <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">Horário de Plantio</span>
-                        <span class="text-sm font-bold text-slate-700">${timeInfo} <span class="text-slate-400 font-normal text-xs">${durationInfo}</span></span>
-                    </div>`;
+                    <div class="flex flex-col"><span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Operacional</span><span class="text-sm font-bold text-slate-700">Colaboradores: ${collab}</span></div>
+                    <div class="flex flex-col items-end"><span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Horário</span><span class="text-sm font-bold text-slate-700">${globalInfo.startTime || '00:00'} até ${globalInfo.endTime || '00:00'}</span></div>`;
             }
         }
 
@@ -730,19 +484,18 @@
 
         function showMessageModal(title, message, type) {
             const modal = document.getElementById('messageModal');
-            const iconContainer = document.getElementById('msgIconContainer');
             document.getElementById('msgTitle').innerText = title;
             document.getElementById('msgText').innerText = message;
-            if (type === 'success') { iconContainer.className = "mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100 mb-4"; iconContainer.innerHTML = '<i data-lucide="check-circle" class="h-6 w-6 text-green-600"></i>'; }
-            else if (type === 'error') { iconContainer.className = "mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4"; iconContainer.innerHTML = '<i data-lucide="alert-circle" class="h-6 w-6 text-red-600"></i>'; }
+            const icon = document.getElementById('msgIconContainer');
+            icon.className = `mx-auto flex items-center justify-center h-12 w-12 rounded-full mb-4 ${type === 'success' ? 'bg-green-100' : 'bg-red-100'}`;
+            icon.innerHTML = `<i data-lucide="${type === 'success' ? 'check-circle' : 'alert-circle'}" class="h-6 w-6 ${type === 'success' ? 'text-green-600' : 'text-red-600'}"></i>`;
             modal.classList.remove('hidden'); lucide.createIcons();
         }
         function hideMessageModal() { document.getElementById('messageModal').classList.add('hidden'); }
 
         function clearPartialForm() {
              document.getElementById('varietyInput').value = '';
-             const varietySelect = document.getElementById('varietySelect');
-             varietySelect.selectedIndex = 0;
+             if(!document.getElementById('varietySelect').classList.contains('hidden')) document.getElementById('varietySelect').selectedIndex = 0;
              resetVarietyField();
              document.getElementById('trays').value = '';
              document.getElementById('totalSeedlings').value = '';
@@ -750,7 +503,6 @@
              document.getElementById('notes').value = '';
              document.getElementById('displayLoss').innerText = '-';
              document.getElementById('displayLossPercent').innerText = '-';
-             if(!varietySelect.classList.contains('hidden')) { varietySelect.focus(); } else { document.getElementById('varietyInput').focus(); }
         }
 
         function clearBlockForm(clearAll = false) {
@@ -758,23 +510,17 @@
                 document.getElementById('partner').selectedIndex = 0;
                 document.getElementById('startTime').value = '';
                 document.getElementById('endTime').value = '';
-                document.getElementById('totalDuration').value = '';
                 document.getElementById('collaborators').value = '';
                 updateGlobalState();
             }
-            document.getElementById('crop').selectedIndex = 0; 
-            document.getElementById('otherCropInput').value = '';
-            document.getElementById('crop-custom-div').classList.add('hidden');
-            document.getElementById('crop').classList.remove('hidden');
-            handleCropChange(); 
+            resetCropField();
             document.getElementById('blockId').value = '';
             document.getElementById('cycle').value = '';
-            if(document.getElementById('blockSelect')) document.getElementById('blockSelect').selectedIndex = 0;
             clearPartialForm();
             editingIndex = -1;
-            const submitBtn = document.getElementById('submitBtn');
-            submitBtn.innerHTML = '<i data-lucide="check" class="w-4 h-4"></i> <span class="text-xs sm:text-sm">Finalizar Bloco</span>';
-            submitBtn.classList.replace('bg-blue-600', 'bg-slate-800');
+            const btn = document.getElementById('submitBtn');
+            btn.innerHTML = '<i data-lucide="check" class="w-4 h-4"></i> <span class="text-xs sm:text-sm">Finalizar Bloco</span>';
+            btn.className = "flex-1 bg-slate-800 hover:bg-slate-900 text-white font-bold py-3 rounded-xl transition-all flex justify-center items-center gap-2 shadow-lg shadow-slate-800/20 active:scale-95";
             document.getElementById('formTitle').innerHTML = '<i data-lucide="sprout" class="text-emerald-600"></i> Novo Plantio';
             document.getElementById('formContainer').classList.remove('border-blue-300', 'ring-2', 'ring-blue-100');
             lucide.createIcons();
@@ -784,55 +530,48 @@
         function addItem(e) { if(e) e.preventDefault(); processItem(false); }
 
         function processItem(keepBlock) {
-            if (!validateHeader()) { document.getElementById('generalDataCard').scrollIntoView({ behavior: 'smooth', block: 'center' }); return; }
+            if (!validateHeader()) { document.getElementById('generalDataCard').scrollIntoView({ behavior: 'smooth' }); return; }
             
             const crop = document.getElementById('crop');
-            let finalCropName = crop.value;
-            if (crop.classList.contains('hidden') || crop.value === 'Outros') { finalCropName = document.getElementById('otherCropInput').value.trim(); }
-            if (!finalCropName) { toggleError(crop.classList.contains('hidden') ? 'otherCropInput' : 'crop', true); return; }
-
+            const finalCrop = crop.classList.contains('hidden') ? document.getElementById('otherCropInput').value.trim() : crop.value;
             const blockSelect = document.getElementById('blockSelect');
-            let finalBlockValue = blockSelect && !blockSelect.classList.contains('hidden') ? blockSelect.value : document.getElementById('blockId').value;
-            if (!finalBlockValue) { toggleError(blockSelect && !blockSelect.classList.contains('hidden') ? 'blockSelect' : 'blockId', true); return; }
-
-            const mudas = document.getElementById('totalSeedlings');
-            const plantado = document.getElementById('plantedAmount');
-            if(!mudas.value || !plantado.value) { toggleError(!mudas.value ? 'totalSeedlings' : 'plantedAmount', true); return; }
+            const finalBlock = blockSelect && !blockSelect.classList.contains('hidden') ? blockSelect.value : document.getElementById('blockId').value;
+            
+            if(!finalCrop || !finalBlock) {
+                if(!finalCrop) toggleError(crop.classList.contains('hidden') ? 'otherCropInput' : 'crop', true);
+                if(!finalBlock) toggleError(blockSelect && !blockSelect.classList.contains('hidden') ? 'blockSelect' : 'blockId', true);
+                return;
+            }
 
             const varietyInput = document.getElementById('varietyInput');
             const varietySelect = document.getElementById('varietySelect');
-            let finalVariety = !varietyInput.classList.contains('hidden') ? varietyInput.value : (!varietySelect.classList.contains('hidden') ? varietySelect.value : document.getElementById('otherVarietyInput').value);
+            const finalVariety = !varietyInput.classList.contains('hidden') ? varietyInput.value : (!varietySelect.classList.contains('hidden') ? varietySelect.value : document.getElementById('otherVarietyInput').value);
 
-            const mudasVal = parseInt(mudas.value.replace(/\./g, ''));
-            const plantadoVal = parseInt(plantado.value.replace(/\./g, ''));
-            const perdasVal = mudasVal - plantadoVal;
-            const perdasPercent = mudasVal > 0 ? (perdasVal / mudasVal) * 100 : 0;
+            const mudasStr = document.getElementById('totalSeedlings').value;
+            const plantadoStr = document.getElementById('plantedAmount').value;
+            if(!mudasStr || !plantadoStr) {
+                if(!mudasStr) toggleError('totalSeedlings', true);
+                if(!plantadoStr) toggleError('plantedAmount', true);
+                return;
+            }
+
+            const mudas = parseInt(mudasStr.replace(/\./g, ''));
+            const plantado = parseInt(plantadoStr.replace(/\./g, ''));
 
             const newItem = {
-                partner: globalInfo.partner, 
-                date: globalInfo.date,
-                collaborators: globalInfo.collaborators,
-                startTime: globalInfo.startTime,
-                endTime: globalInfo.endTime,
-                duration: globalInfo.duration,
-                crop: finalCropName,
-                block: finalBlockValue,
-                cycle: document.getElementById('cycle').value, // NOVO CAMPO
-                variety: finalVariety,
-                age: document.getElementById('plantAge').value,
-                trays: document.getElementById('trays').value,
-                seedlings: mudasVal,
-                planted: plantadoVal,
-                losses: perdasVal,
-                lossPercent: perdasPercent.toFixed(0),
+                partner: globalInfo.partner, date: globalInfo.date, crop: finalCrop, block: finalBlock,
+                cycle: document.getElementById('cycle').value, variety: finalVariety,
+                age: document.getElementById('plantAge').value, trays: document.getElementById('trays').value,
+                seedlings: mudas, planted: plantado, losses: mudas - plantado,
+                lossPercent: mudas > 0 ? (((mudas - plantado) / mudas) * 100).toFixed(0) : 0,
                 notes: document.getElementById('notes').value
             };
 
             if (editingIndex >= 0) { appData[editingIndex] = newItem; editingIndex = -1; clearBlockForm(false); } 
             else { 
                 appData.push(newItem); 
-                if(keepBlock) { clearPartialForm(); showMessageModal('Adicionado', 'Variedade salva no bloco! Adicione a próxima.', 'success'); } 
-                else { clearBlockForm(false); }
+                if(keepBlock) { clearPartialForm(); showMessageModal('Adicionado', 'Salvo! Adicione a próxima variedade.', 'success'); } 
+                else clearBlockForm(false);
             }
             renderReport(); renderList();
         }
@@ -840,24 +579,46 @@
         function editItem(index) {
             const item = appData[index];
             editingIndex = index; 
+
             document.getElementById('partner').value = item.partner;
-            document.getElementById('appDate').value = item.date;
-            document.getElementById('collaborators').value = item.collaborators || '';
-            document.getElementById('startTime').value = item.startTime || '';
-            document.getElementById('endTime').value = item.endTime || '';
-            calculateDuration(); 
+            updateGlobalState();
             
             const cropSelect = document.getElementById('crop');
-            const options = Array.from(cropSelect.options).map(o => o.value);
-            if (options.includes(item.crop)) { cropSelect.value = item.crop; } 
-            else { cropSelect.value = 'Outros'; toggleOtherCropInput(); document.getElementById('otherCropInput').value = item.crop; }
+            const hasCrop = Array.from(cropSelect.options).some(opt => opt.value === item.crop);
+            if(hasCrop) {
+                resetCropField();
+                cropSelect.value = item.crop;
+            } else {
+                cropSelect.value = 'Outros';
+                toggleOtherCropInput();
+                document.getElementById('otherCropInput').value = item.crop;
+            }
             handleCropChange();
 
             const blockSelect = document.getElementById('blockSelect');
-            if (blockSelect && !blockSelect.classList.contains('hidden')) { blockSelect.value = item.block; } 
-            else { document.getElementById('blockId').value = item.block; }
-            
-            document.getElementById('cycle').value = item.cycle || ''; // EDIT CICLO
+            if(blockSelect && !blockSelect.classList.contains('hidden')) {
+                blockSelect.value = item.block;
+            } else {
+                document.getElementById('blockId').value = item.block;
+            }
+
+            const varietySelect = document.getElementById('varietySelect');
+            if(!varietySelect.classList.contains('hidden')) {
+                const hasVariety = Array.from(varietySelect.options).some(opt => opt.value === item.variety);
+                if(hasVariety) {
+                    varietySelect.value = item.variety;
+                    resetVarietyField(); 
+                    varietySelect.value = item.variety;
+                } else {
+                    varietySelect.value = 'Outra';
+                    toggleOtherVarietyInput();
+                    document.getElementById('otherVarietyInput').value = item.variety;
+                }
+            } else {
+                document.getElementById('varietyInput').value = item.variety;
+            }
+
+            document.getElementById('cycle').value = item.cycle || '';
             document.getElementById('plantAge').value = item.age || '';
             document.getElementById('trays').value = item.trays || '';
             document.getElementById('totalSeedlings').value = item.seedlings.toLocaleString('pt-BR');
@@ -865,38 +626,31 @@
             document.getElementById('notes').value = item.notes || '';
             calculateLoss();
             
-            const submitBtn = document.getElementById('submitBtn');
-            submitBtn.innerHTML = '<i data-lucide="save" class="w-4 h-4"></i> <span>Salvar Alterações</span>';
-            submitBtn.classList.replace('bg-slate-800', 'bg-blue-600');
+            const btn = document.getElementById('submitBtn');
+            btn.innerHTML = '<i data-lucide="save" class="w-4 h-4"></i> <span>Salvar Alterações</span>';
+            btn.className = "flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl transition-all flex justify-center items-center gap-2 shadow-lg shadow-blue-800/20 active:scale-95";
             document.getElementById('formTitle').innerHTML = '<i data-lucide="pencil" class="text-blue-600"></i> Editando Registro';
             document.getElementById('formContainer').classList.add('border-blue-300', 'ring-2', 'ring-blue-100');
-            document.getElementById('formContainer').scrollIntoView({ behavior: 'smooth', block: 'center' });
+            document.getElementById('formContainer').scrollIntoView({ behavior: 'smooth' });
             lucide.createIcons();
         }
 
-        function removeItem(index) {
-            if (editingIndex === index) { clearBlockForm(false); editingIndex = -1; }
-            appData.splice(index, 1);
-            renderReport(); renderList();
-        }
+        function removeItem(index) { appData.splice(index, 1); renderReport(); renderList(); }
 
         function renderList() {
             const list = document.getElementById('itemsList');
             list.innerHTML = '';
             const displayData = getFilteredData();
-            if (displayData.length === 0) { list.innerHTML = '<li class="text-center text-slate-400 italic py-2">Nenhum registro encontrado.</li>'; return; }
+            if (displayData.length === 0) { list.innerHTML = '<li class="text-center text-slate-400 italic py-2 text-xs">Sem registros.</li>'; return; }
             displayData.forEach((item) => {
-                const originalIndex = appData.indexOf(item);
-                const activeClass = (originalIndex === editingIndex) ? 'border-blue-400 bg-blue-50 ring-1 ring-blue-200' : 'border-slate-100 bg-slate-50';
+                const globalIdx = appData.indexOf(item);
+                const active = (globalIdx === editingIndex) ? 'border-blue-400 bg-blue-50 ring-1 ring-blue-200' : 'border-slate-100 bg-slate-50';
                 list.innerHTML += `
-                    <li class="flex justify-between items-center p-2 rounded border ${activeClass} transition-all">
-                        <div class="flex flex-col">
-                            <span class="text-[10px] text-slate-400 font-bold uppercase">Bloco ${item.block} ${item.cycle ? '• Ciclo '+item.cycle : ''} • ${item.crop}</span>
-                            <span class="font-bold text-slate-700">${item.variety || '-'} • Plantado: ${item.planted.toLocaleString('pt-BR')}</span>
-                        </div>
+                    <li class="flex justify-between items-center p-2 rounded border ${active} transition-all">
+                        <div class="flex flex-col"><span class="text-[10px] text-slate-400 font-bold uppercase">Bloco ${item.block} • ${item.crop}</span><span class="font-bold text-slate-700">${item.variety || '-'} • ${item.planted.toLocaleString('pt-BR')} un.</span></div>
                         <div class="flex items-center">
-                            <button onclick="editItem(${originalIndex})" class="text-blue-500 hover:bg-blue-100 p-1.5 rounded-md mr-1"><i data-lucide="pencil" width="14"></i></button>
-                            <button onclick="removeItem(${originalIndex})" class="text-red-500 hover:bg-red-100 p-1.5 rounded-md"><i data-lucide="trash-2" width="14"></i></button>
+                            <button onclick="editItem(${globalIdx})" class="text-blue-500 mr-2"><i data-lucide="pencil" width="14"></i></button>
+                            <button onclick="removeItem(${globalIdx})" class="text-red-500"><i data-lucide="trash-2" width="14"></i></button>
                         </div>
                     </li>`;
             });
@@ -907,12 +661,11 @@
             const container = document.getElementById('reportContent');
             const footerContainer = document.getElementById('operationalFooter');
             container.innerHTML = '';
-            let totalPlantedGlobal = 0, totalLossesGlobal = 0;
+            let totalPGlobal = 0, totalLGlobal = 0, totalSGlobal = 0;
             const displayData = getFilteredData();
 
-            if (displayData.length === 0) { container.innerHTML = `<div class="p-8 text-center text-slate-400 text-xs italic h-full flex flex-col items-center justify-center"><i data-lucide="sprout" class="mb-2 w-8 h-8 opacity-20"></i><span>Adicione registros de plantio.</span></div>`; } 
+            if (displayData.length === 0) container.innerHTML = `<div class="p-8 text-center text-slate-400 text-xs italic h-full flex flex-col items-center justify-center"><span>Adicione registros de plantio.</span></div>`;
             else {
-                // AGRUPAMENTO POR BLOCO + CICLO
                 const grouped = {};
                 displayData.forEach(item => {
                     const key = `${item.block}-${item.cycle || ''}`;
@@ -921,78 +674,53 @@
                 });
 
                 Object.keys(grouped).sort().forEach(key => {
-                    const blockItems = grouped[key];
-                    let bPlanted = 0, bLosses = 0, bSeedlings = 0;
-                    const blockVal = blockItems[0].block;
-                    const cycleVal = blockItems[0].cycle;
-                    let locationLabel = blockItems[0].crop.toLowerCase().includes('pepino') ? "Setor" : "Bloco";
+                    const bItems = grouped[key];
+                    let bP = 0, bL = 0, bS = 0;
+                    const bVal = bItems[0].block, cVal = bItems[0].cycle;
+                    let label = bItems[0].crop.toLowerCase().includes('pepino') ? "Setor" : "Bloco";
 
-                    let cardHtml = `
-                    <div class="p-5 border-b border-slate-100 last:border-0 hover:bg-slate-50/50 transition-colors">
-                        <div class="mb-4 flex justify-between items-baseline">
-                            <div class="text-xs font-bold text-slate-800 uppercase tracking-widest">${locationLabel} ${blockVal} ${cycleVal ? '• CICLO '+cycleVal : ''}</div>
-                        </div>
-                        <div class="space-y-4">`;
+                    let cardHtml = `<div class="p-5 border-b border-slate-100 last:border-0 hover:bg-slate-50/50 transition-colors"><div class="mb-4 text-xs font-bold text-slate-800 uppercase tracking-widest">${label} ${bVal} ${cVal ? '• CICLO '+cVal : ''}</div><div class="space-y-4">`;
 
-                    blockItems.forEach(item => {
-                        bPlanted += parseInt(item.planted); bLosses += parseInt(item.losses); bSeedlings += parseInt(item.seedlings);
-                        totalPlantedGlobal += item.planted; totalLossesGlobal += item.losses;
+                    bItems.forEach(item => {
+                        bP += item.planted; bL += item.losses; bS += item.seedlings;
+                        totalPGlobal += item.planted; totalLGlobal += item.losses; totalSGlobal += item.seedlings;
                         const pPct = item.seedlings > 0 ? (item.planted / item.seedlings) * 100 : 0;
                         cardHtml += `
                         <div class="bg-white rounded-xl border border-slate-100 p-3 shadow-sm">
-                            <div class="flex justify-between items-start mb-2">
-                                <span class="text-xs font-bold text-slate-700">${item.crop} <span class="text-slate-400 font-normal">(${item.variety || '-'})</span></span>
-                                <span class="text-[9px] font-bold text-slate-400 uppercase">${item.age ? 'Idade: ' + item.age + ' dias' : '-'}</span>
-                            </div>
+                            <div class="flex justify-between items-start mb-2"><span class="text-xs font-bold text-slate-700">${item.crop} <span class="text-slate-400 font-normal">(${item.variety || '-'})</span></span><span class="text-[9px] font-bold text-slate-400 uppercase">${item.age ? 'Idade: ' + item.age + ' dias' : '-'}</span></div>
                             <div class="grid grid-cols-2 gap-2">
                                 <div class="flex flex-col items-center p-2 bg-emerald-50/50 rounded-lg border border-emerald-100/50">
                                     <span class="text-[8px] font-bold text-emerald-500 uppercase">Plantado</span>
-                                    <span class="font-extrabold text-emerald-700 text-xs">${item.planted.toLocaleString('pt-BR')} <span class="text-[8px] opacity-70">(${pPct.toFixed(0)}%)</span></span>
+                                    <span class="font-extrabold text-emerald-700 text-xs">${item.planted.toLocaleString('pt-BR')} <span class="text-[10px] font-bold">(${pPct.toFixed(0)}%)</span></span>
                                 </div>
                                 <div class="flex flex-col items-center p-2 bg-red-50/50 rounded-lg border border-red-100/50">
                                     <span class="text-[8px] font-bold text-red-400 uppercase">Perdas</span>
-                                    <span class="font-bold text-red-600 text-[10px]">${item.losses.toLocaleString('pt-BR')} <span class="text-[8px] opacity-70">(${item.lossPercent}%)</span></span>
+                                    <span class="font-bold text-red-600 text-[10px]">${item.losses.toLocaleString('pt-BR')} <span class="text-[10px] font-bold">(${item.lossPercent}%)</span></span>
                                 </div>
                             </div>
-                            ${item.notes ? `<div class="mt-2 text-[9px] text-slate-400 italic">Obs: ${item.notes}</div>` : ''}
                         </div>`;
                     });
 
-                    const bLossPct = bSeedlings > 0 ? (bLosses / bSeedlings) * 100 : 0;
-                    cardHtml += `
-                        </div>
-                        <div class="mt-4 pt-3 border-t border-dashed border-slate-200 flex justify-between items-center px-1">
-                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Total do ${locationLabel} ${blockVal}</span>
-                            <div class="flex gap-4">
-                                <div class="text-right">
-                                    <span class="block text-[8px] font-bold text-emerald-500 uppercase">Plantado</span>
-                                    <span class="text-xs font-black text-emerald-800">${bPlanted.toLocaleString('pt-BR')}</span>
-                                </div>
-                                <div class="text-right">
-                                    <span class="block text-[8px] font-bold text-red-400 uppercase">Perdas</span>
-                                    <span class="text-xs font-black text-red-600">${bLosses.toLocaleString('pt-BR')} <span class="text-[8px] font-bold">(${bLossPct.toFixed(0)}%)</span></span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>`;
+                    const bLPPct = bS > 0 ? (bL / bS) * 100 : 0;
+                    const bPPPct = bS > 0 ? (bP / bS) * 100 : 0;
+                    cardHtml += `</div><div class="mt-4 pt-3 border-t border-dashed border-slate-200 flex justify-between items-center px-1"><span class="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Total do ${label} ${bVal}</span><div class="flex gap-4 items-center"><div class="text-right"><span class="block text-[8px] font-bold text-emerald-500 uppercase">Plantado</span><span class="text-xs font-black text-emerald-800">${bP.toLocaleString('pt-BR')} <span class="text-[11px] font-black text-emerald-600">(${bPPPct.toFixed(0)}%)</span></span></div><div class="text-right"><span class="block text-[8px] font-bold text-red-400 uppercase">Perdas</span><span class="text-xs font-black text-red-600">${bL.toLocaleString('pt-BR')} <span class="text-[11px] font-black text-red-600">(${bLPPct.toFixed(0)}%)</span></span></div></div></div></div>`;
                     container.innerHTML += cardHtml;
                 });
             }
             
-            const totalMGlobal = totalPlantedGlobal + totalLossesGlobal;
-            const avgLP = totalMGlobal > 0 ? (totalLossesGlobal / totalMGlobal) * 100 : 0;
-            const avgPP = totalMGlobal > 0 ? (totalPlantedGlobal / totalMGlobal) * 100 : 0;
+            const gLP = totalSGlobal > 0 ? (totalLGlobal / totalSGlobal) * 100 : 0;
+            const gPP = totalSGlobal > 0 ? (totalPGlobal / totalSGlobal) * 100 : 0;
 
             footerContainer.innerHTML = `
-                <div class="bg-orange-50 rounded-xl p-4 flex items-center justify-between relative">
+                <div class="bg-orange-50 rounded-xl p-4 flex items-center justify-between relative overflow-hidden">
                     <div class="text-center flex-1">
                         <div class="text-[10px] text-emerald-600 font-bold uppercase mb-0.5">TOTAL PLANTADO</div>
-                        <div class="text-xl font-extrabold text-emerald-800">${totalPlantedGlobal.toLocaleString('pt-BR')} <span class="text-sm font-bold text-emerald-600">(${avgPP.toFixed(0)}%)</span></div>
+                        <div class="text-xl font-extrabold text-emerald-800">${totalPGlobal.toLocaleString('pt-BR')} <span class="text-base font-black text-emerald-600">(${gPP.toFixed(0)}%)</span></div>
                     </div>
                     <div class="w-px h-8 bg-orange-200 mx-2"></div>
                     <div class="text-center flex-1">
                         <div class="text-[10px] text-red-400 font-bold uppercase mb-0.5">TOTAL PERDAS</div>
-                        <div class="text-sm font-bold text-red-600">${totalLossesGlobal.toLocaleString('pt-BR')} (${avgLP.toFixed(0)}%)</div>
+                        <div class="text-sm font-bold text-red-600">${totalLGlobal.toLocaleString('pt-BR')} <span class="text-xs font-black">(${gLP.toFixed(0)}%)</span></div>
                     </div>
                 </div>`;
             lucide.createIcons();
@@ -1001,79 +729,63 @@
         function copyToWhatsApp() {
             const data = getFilteredData();
             if (data.length === 0) return;
-            let dateStr = globalInfo.date ? globalInfo.date.split('-').reverse().join('/') : new Date().toLocaleDateString('pt-BR');
-            let text = `Resumo do Plantio – ${dateStr}\n\n`;
-
+            let text = `Resumo do Plantio – ${new Date().toLocaleDateString('pt-BR')}\n\n`;
             const grouped = {};
-            data.forEach(item => {
-                const key = `${item.block}-${item.cycle || ''}`;
-                if (!grouped[key]) grouped[key] = [];
-                grouped[key].push(item);
-            });
-
-            Object.keys(grouped).sort().forEach(key => {
-                const items = grouped[key];
+            data.forEach(i => { const k = `${i.block}-${i.cycle || ''}`; if(!grouped[k]) grouped[k]=[]; grouped[k].push(i); });
+            Object.keys(grouped).sort().forEach(k => {
+                const items = grouped[k];
                 text += `✅ *Bloco ${items[0].block}${items[0].cycle ? ' Ciclo '+items[0].cycle : ''}*\n`;
-                items.forEach(i => { text += `- ${i.crop} (${i.variety || '-'}): ${i.planted.toLocaleString('pt-BR')} mudas (${i.lossPercent}% perda)\n`; });
+                items.forEach(i => { text += `- ${i.crop} (${i.variety || '-'}): ${i.planted.toLocaleString('pt-BR')} un. (${i.lossPercent}% perda)\n`; });
                 text += `\n`;
             });
-
-            text += `Colaboradores: ${globalInfo.collaborators || '-'}\n`;
-            if(globalInfo.duration) text += `Horário: ${globalInfo.startTime} até ${globalInfo.endTime} (${globalInfo.duration})\n`;
-
-            const textArea = document.createElement("textarea");
-            textArea.value = text; document.body.appendChild(textArea); textArea.select();
-            try { document.execCommand('copy'); showMessageModal('Sucesso!', 'Resumo copiado para o WhatsApp.', 'success'); } catch (err) { }
-            document.body.removeChild(textArea);
+            const tA = document.createElement("textarea"); tA.value = text; document.body.appendChild(tA); tA.select();
+            document.execCommand('copy'); showMessageModal('Sucesso!', 'Texto copiado para o Zap.', 'success');
+            document.body.removeChild(tA);
         }
 
         async function downloadImage() {
             const el = document.getElementById('report-card');
             try {
-                const canvas = await html2canvas(el, { scale: 3, useCORS: true, backgroundColor: '#ffffff' });
-                const link = document.createElement('a'); link.href = canvas.toDataURL('image/png');
+                const options = {
+                    scale: 5, useCORS: true, allowTaint: true, scrollY: -window.scrollY, backgroundColor: '#ffffff', windowWidth: 480,
+                    onclone: (doc) => {
+                        const cEl = doc.getElementById('report-card');
+                        if (cEl) { cEl.style.width = '450px'; cEl.style.maxWidth = '450px'; cEl.style.margin = '0'; cEl.style.boxShadow = 'none'; cEl.style.borderRadius = '0'; cEl.style.border = 'none'; }
+                        const content = doc.getElementById('reportContent');
+                        if (content) { content.style.height = 'auto'; content.style.overflow = 'visible'; content.style.maxHeight = 'none'; }
+                    }
+                };
+                const canvas = await html2canvas(el, options);
+                const link = document.createElement('a'); 
+                link.href = canvas.toDataURL('image/png');
                 link.download = `Resumo_Plantio_${new Date().toISOString().slice(0,10)}.png`;
                 link.click();
-            } catch (err) { }
+            } catch (err) { console.error(err); }
         }
 
         async function downloadPDF() {
-            const data = getFilteredData();
-            if (data.length === 0) return;
-            
-            document.getElementById('pdf-partner').innerText = globalInfo.partner || '-';
-            let dStr = globalInfo.date ? globalInfo.date.split('-').reverse().join('/') : '-';
-            document.getElementById('pdf-date').innerText = dStr;
-            document.getElementById('pdf-collaborators').innerText = globalInfo.collaborators || '-';
-            document.getElementById('pdf-time').innerText = globalInfo.duration ? `${globalInfo.startTime} às ${globalInfo.endTime}` : '-';
-
-            const tbody = document.getElementById('pdf-table-body');
-            tbody.innerHTML = '';
-            let totalP = 0;
-            data.sort((a,b)=> a.block.localeCompare(b.block, undefined, {numeric:true})).forEach(item => {
-                totalP += item.planted;
-                const pPct = item.seedlings > 0 ? (item.planted / item.seedlings) * 100 : 0;
-                tbody.innerHTML += `
-                    <tr>
-                        <td>${item.block}${item.cycle ? ' / '+item.cycle : ''}</td>
-                        <td>${item.crop}<br><small>${item.variety || ''}</small></td>
-                        <td>${item.age || '-'}</td>
-                        <td>${item.trays || '-'}</td>
-                        <td>${item.seedlings.toLocaleString('pt-BR')}</td>
-                        <td>${item.planted.toLocaleString('pt-BR')}</td>
-                        <td>${pPct.toFixed(0)}%</td>
-                        <td>${item.losses.toLocaleString('pt-BR')}</td>
-                        <td>${item.lossPercent}%</td>
-                    </tr>`;
-            });
-            document.getElementById('pdf-total-planted').innerText = totalP.toLocaleString('pt-BR');
-
+            const el = document.getElementById('report-card');
+            const btn = document.querySelector('#pdfBtn span');
+            const original = btn.innerText;
+            btn.innerText = "Gerando...";
             try {
-                const canvas = await html2canvas(document.getElementById('technical-report-template'), { scale: 2, useCORS: true, backgroundColor: '#ffffff', windowWidth: 794 });
-                const pdf = new jspdf.jsPDF('p', 'mm', 'a4');
-                pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, 210, (canvas.height * 210) / canvas.width);
-                pdf.save(`Relatorio_Plantio_${new Date().toISOString().slice(0,10)}.pdf`);
-            } catch (err) { }
+                const options = {
+                    scale: 3, useCORS: true, allowTaint: true, scrollY: -window.scrollY, backgroundColor: '#ffffff', windowWidth: 480,
+                    onclone: (doc) => {
+                        const cEl = doc.getElementById('report-card');
+                        if (cEl) { cEl.style.width = '450px'; cEl.style.maxWidth = '450px'; cEl.style.margin = '0'; cEl.style.boxShadow = 'none'; }
+                        const content = doc.getElementById('reportContent');
+                        if (content) { content.style.height = 'auto'; content.style.overflow = 'visible'; content.style.maxHeight = 'none'; }
+                    }
+                };
+                const canvas = await html2canvas(el, options);
+                const imgWidth = 450;
+                const pageHeight = (canvas.height * imgWidth) / canvas.width;
+                const pdf = new jspdf.jsPDF({ orientation: 'p', unit: 'px', format: [imgWidth, pageHeight], hotfixes: ['px_scaling'] });
+                pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, imgWidth, pageHeight);
+                pdf.save(`Relatorio_Tecnico_Plantio_${new Date().toISOString().slice(0,10)}.pdf`);
+            } catch (err) { console.error(err); }
+            finally { btn.innerText = original; }
         }
     </script>
 </body>
