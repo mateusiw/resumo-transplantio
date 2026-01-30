@@ -16,6 +16,7 @@
     <!-- Bibliotecas Externas -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- HTML2Canvas + jsPDF -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     
@@ -32,11 +33,6 @@
             from { opacity: 0; }
             to { opacity: 1; }
         }
-        
-        /* Indicador de Sincronização */
-        #syncIndicator {
-            transition: all 0.3s ease;
-        }
     </style>
 </head>
 <body class="bg-slate-100 text-slate-800 min-h-screen pb-20 select-none">
@@ -46,24 +42,24 @@
         <div class="flex items-center gap-3 w-full md:w-auto">
             <img src="https://i.imgur.com/f7UnnL0.png" alt="Logo SPG" class="w-8 h-8 rounded-lg shadow-sm border border-slate-100">
             <div>
-                <h1 class="text-sm font-bold text-slate-800 leading-tight flex items-center gap-2">
-                    SPG TRANSPLANTIO
-                    <span id="syncIndicator" class="w-2 h-2 rounded-full bg-slate-300 shadow-[0_0_5px_rgba(0,0,0,0.1)]" title="Estado de Sincronização"></span>
-                </h1>
+                <h1 class="text-sm font-bold text-slate-800 leading-tight">SPG TRANSPLANTIO</h1>
                 <p class="text-[10px] text-slate-500 font-medium">Controle de Plantio de Mudas</p>
             </div>
         </div>
         <div class="flex gap-2 w-full md:w-auto overflow-x-auto pb-1 md:pb-0">
+            <!-- Botão WhatsApp -->
             <button id="btnZap" onclick="copyToWhatsApp()" class="flex-1 md:flex-none flex items-center justify-center gap-2 px-3 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg text-xs font-bold shadow-lg shadow-emerald-500/20 transition-all active:scale-95 active:bg-emerald-700 whitespace-nowrap">
                 <i data-lucide="message-circle" class="w-4 h-4"></i>
                 <span>Zap</span>
             </button>
             
+            <!-- Botão Imagem -->
             <button onclick="downloadImage()" class="flex-1 md:flex-none flex items-center justify-center gap-2 px-3 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg text-xs font-bold shadow-lg shadow-orange-500/20 transition-all active:scale-95 active:bg-orange-700 whitespace-nowrap">
                 <i data-lucide="image" class="w-4 h-4"></i>
                 <span>Imagem</span>
             </button>
 
+            <!-- Botão Relatório Técnico -->
             <button id="pdfBtn" type="button" onclick="downloadPDF()" class="flex-1 md:flex-none flex items-center justify-center gap-2 px-3 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-xs font-bold shadow-lg shadow-red-600/20 transition-all active:scale-95 active:bg-red-800 whitespace-nowrap">
                 <i data-lucide="file-down" class="w-4 h-4"></i>
                 <span>Relatório Técnico</span>
@@ -76,7 +72,6 @@
         <!-- COLUNA DA ESQUERDA -->
         <div class="w-full lg:w-2/5 space-y-4">
             
-            <!-- DADOS GERAIS -->
             <div id="generalDataCard" class="bg-emerald-50 p-5 rounded-2xl shadow-sm border border-emerald-100 transition-colors">
                 <h2 class="text-sm font-bold text-emerald-800 mb-3 flex items-center gap-2">
                     <i data-lucide="calendar-check" class="text-emerald-600"></i> Dados Gerais do Plantio
@@ -120,7 +115,6 @@
                 </div>
             </div>
 
-            <!-- FORMULÁRIO -->
             <div id="formContainer" class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 transition-colors duration-300">
                 <div class="flex justify-between items-center mb-4">
                     <h2 id="formTitle" class="text-lg font-bold text-slate-800 flex items-center gap-2">
@@ -249,7 +243,7 @@
                 <div id="operationalFooter" class="bg-white border-b border-slate-200 p-4 shrink-0 z-10"></div>
 
                 <div id="reportContent" class="flex-1 overflow-y-auto">
-                    <div class="p-8 text-center text-slate-400 text-xs italic h-full flex items-center justify-center">Carregando dados...</div>
+                    <div class="p-8 text-center text-slate-400 text-xs italic h-full flex items-center justify-center">Adicione registros para gerar o resumo.</div>
                 </div>
 
                 <div class="bg-slate-100 p-3 text-center border-t border-slate-200 shrink-0">
@@ -285,21 +279,9 @@
         </div>
     </div>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-        // CONFIGURAÇÕES FIREBASE (PROVIDENCIADAS PELO AMBIENTE)
-        const firebaseConfig = JSON.parse(__firebase_config);
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-
+    <script>
         let appData = [];
         let editingIndex = -1;
-        let user = null;
 
         const varietiesCauliflower = ["26972 RZ", "Alcala", "Champagne Snow", "Copacabana", "Ponto Perde", "Serena", "SF-1758", "Supremo", "Tirsuli", "Vereda", "Vereda F1", "Vigor F1"];
         const varietiesBroccoli = ["Bragantino F1", "BRO 68 Syngenta", "Claramont", "Master TSV", "PHAR LAP", "Sakata Jiraya F1"];
@@ -307,101 +289,33 @@
 
         let globalInfo = { partner: '', date: '', collaborators: '', startTime: '', endTime: '', duration: '' };
 
-        // --- INICIALIZAÇÃO E PERSISTÊNCIA ---
+        lucide.createIcons();
+        updateDynamicTitle();
+        handleCropChange();
 
-        async function initAuth() {
-            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                await signInWithCustomToken(auth, __initial_auth_token);
-            } else {
-                await signInAnonymously(auth);
-            }
-        }
-
-        onAuthStateChanged(auth, (u) => {
-            user = u;
-            if (user) {
-                const indicator = document.getElementById('syncIndicator');
-                if(indicator) indicator.classList.replace('bg-slate-300', 'bg-emerald-500');
-                loadPersistence();
-            }
-        });
-
-        initAuth();
-
-        // Salva estado no Firestore
-        async function savePersistence() {
-            if (!user) return;
-            const indicator = document.getElementById('syncIndicator');
-            if(indicator) indicator.classList.add('animate-pulse');
-            
-            try {
-                // Caminho privado do usuário
-                const docRef = doc(db, 'artifacts', appId, 'users', user.uid, 'persistence', 'state');
-                await setDoc(docRef, {
-                    appData: JSON.stringify(appData),
-                    globalInfo: globalInfo,
-                    updatedAt: new Date().toISOString()
-                });
-            } catch (err) {
-                console.error("Erro ao salvar:", err);
-            } finally {
-                if(indicator) indicator.classList.remove('animate-pulse');
-            }
-        }
-
-        // Carrega estado do Firestore
-        function loadPersistence() {
-            if (!user) return;
-            const docRef = doc(db, 'artifacts', appId, 'users', user.uid, 'persistence', 'state');
-            
-            onSnapshot(docRef, (snapshot) => {
-                if (snapshot.exists()) {
-                    const data = snapshot.data();
-                    appData = data.appData ? JSON.parse(data.appData) : [];
-                    globalInfo = data.globalInfo || globalInfo;
-                    
-                    // Atualiza campos de UI que não disparam eventos
-                    document.getElementById('partner').value = globalInfo.partner || "";
-                    document.getElementById('appDate').value = globalInfo.date || "";
-                    document.getElementById('collaborators').value = globalInfo.collaborators || "";
-                    document.getElementById('startTime').value = globalInfo.startTime || "";
-                    document.getElementById('endTime').value = globalInfo.endTime || "";
-                    document.getElementById('totalDuration').value = globalInfo.duration || "";
-                    
-                    updateDynamicTitle();
-                    renderList();
-                    renderReport();
-                } else {
-                    renderReport(); // Estado vazio
-                }
-            }, (err) => console.error("Erro ao carregar:", err));
-        }
-
-        // --- LÓGICA DE NEGÓCIO ---
-
-        window.toggleError = function(id, show) {
+        function toggleError(id, show) {
             const el = document.getElementById(id);
             if (!el) return; 
             if(show) el.classList.add('border-red-500', 'ring-1', 'ring-red-500');
             else el.classList.remove('border-red-500', 'ring-1', 'ring-red-500');
         }
         
-        window.clearError = function(id) { window.toggleError(id, false); }
+        function clearError(id) { toggleError(id, false); }
 
-        window.validateHeader = function() {
+        function validateHeader() {
             let isValid = true;
-            if(!document.getElementById('partner').value) { window.toggleError('partner', true); isValid = false; }
-            if(!document.getElementById('appDate').value) { window.toggleError('appDate', true); isValid = false; }
+            if(!document.getElementById('partner').value) { toggleError('partner', true); isValid = false; }
+            if(!document.getElementById('appDate').value) { toggleError('appDate', true); isValid = false; }
             return isValid;
         }
 
-        window.formatNumberInput = function(input) {
+        function formatNumberInput(input) {
             let value = input.value.replace(/\D/g, '');
             if (value === '') { input.value = ''; return; }
             input.value = parseInt(value).toLocaleString('pt-BR');
         }
 
-        window.updateGlobalState = function() {
+        function updateGlobalState() {
             globalInfo.partner = document.getElementById('partner').value;
             globalInfo.date = document.getElementById('appDate').value;
             globalInfo.collaborators = document.getElementById('collaborators').value;
@@ -411,18 +325,17 @@
             updateDynamicTitle();
             renderList();
             renderReport();
-            savePersistence();
         }
 
-        window.calculateSeedlingsFromTrays = function() {
+        function calculateSeedlingsFromTrays() {
             const trays = parseInt(document.getElementById('trays').value) || 0;
             const seedlingsInput = document.getElementById('totalSeedlings');
             if(trays > 0) seedlingsInput.value = (trays * 200).toLocaleString('pt-BR');
             else seedlingsInput.value = '';
-            window.calculateLoss();
+            calculateLoss();
         }
 
-        window.calculateLoss = function() {
+        function calculateLoss() {
             const parseFormatted = (val) => parseInt(val.replace(/\./g, '')) || 0;
             const mudas = parseFormatted(document.getElementById('totalSeedlings').value);
             const plantado = parseFormatted(document.getElementById('plantedAmount').value);
@@ -435,7 +348,7 @@
             } else { displayLoss.innerText = "-"; displayPercent.innerText = "-"; }
         }
 
-        window.calculateDuration = function() {
+        function calculateDuration() {
             const start = document.getElementById('startTime').value;
             const end = document.getElementById('endTime').value;
             if (start && end) {
@@ -447,10 +360,10 @@
                 const minutes = Math.floor((diffMs % 3600000) / 60000);
                 document.getElementById('totalDuration').value = `${hours}h ${minutes}min`;
             } else document.getElementById('totalDuration').value = "";
-            window.updateGlobalState();
+            updateGlobalState();
         }
 
-        window.handleCropChange = function() {
+        function handleCropChange() {
             const select = document.getElementById('crop');
             const blockLabel = document.getElementById('blockLabel');
             const blockInput = document.getElementById('blockId');
@@ -504,7 +417,7 @@
             }
         }
         
-        window.toggleOtherCropInput = function() {
+        function toggleOtherCropInput() {
             const select = document.getElementById('crop');
             if (select.value === 'Outros') {
                 select.classList.add('hidden');
@@ -513,14 +426,14 @@
             }
         }
 
-        window.resetCropField = function() {
+        function resetCropField() {
             document.getElementById('crop').classList.remove('hidden');
             document.getElementById('crop').selectedIndex = 0;
             document.getElementById('crop-custom-div').classList.add('hidden');
-            window.handleCropChange();
+            handleCropChange();
         }
 
-        window.toggleOtherVarietyInput = function() {
+        function toggleOtherVarietyInput() {
             if (document.getElementById('varietySelect').value === 'Outra') {
                 document.getElementById('varietySelect').classList.add('hidden');
                 document.getElementById('variety-custom-div').classList.remove('hidden');
@@ -528,7 +441,7 @@
             }
         }
 
-        window.resetVarietyField = function() {
+        function resetVarietyField() {
             document.getElementById('varietySelect').classList.remove('hidden');
             document.getElementById('varietySelect').selectedIndex = 0;
             document.getElementById('variety-custom-div').classList.add('hidden');
@@ -538,6 +451,12 @@
             const selectedPartner = document.getElementById('partner').value;
             if(!selectedPartner) return [];
             return appData.filter(item => item.partner === selectedPartner);
+        }
+
+        function getWeekNumber(d) {
+            d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+            d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
+            return Math.ceil((((d - new Date(Date.UTC(d.getUTCFullYear(), 0, 1))) / 86400000) + 1) / 7);
         }
 
         function updateDynamicTitle() {
@@ -559,11 +478,11 @@
             }
         }
 
-        window.showClearAllModal = function() { document.getElementById('clearAllModal').classList.remove('hidden'); }
-        window.hideClearAllModal = function() { document.getElementById('clearAllModal').classList.add('hidden'); }
-        window.confirmClearAll = function() { appData = []; clearBlockForm(false); renderReport(); renderList(); hideClearAllModal(); savePersistence(); }
+        function showClearAllModal() { document.getElementById('clearAllModal').classList.remove('hidden'); }
+        function hideClearAllModal() { document.getElementById('clearAllModal').classList.add('hidden'); }
+        function confirmClearAll() { appData = []; clearBlockForm(false); renderReport(); renderList(); hideClearAllModal(); }
 
-        window.showMessageModal = function(title, message, type) {
+        function showMessageModal(title, message, type) {
             const modal = document.getElementById('messageModal');
             document.getElementById('msgTitle').innerText = title;
             document.getElementById('msgText').innerText = message;
@@ -572,7 +491,7 @@
             icon.innerHTML = `<i data-lucide="${type === 'success' ? 'check-circle' : 'alert-circle'}" class="h-6 w-6 ${type === 'success' ? 'text-green-600' : 'text-red-600'}"></i>`;
             modal.classList.remove('hidden'); lucide.createIcons();
         }
-        window.hideMessageModal = function() { document.getElementById('messageModal').classList.add('hidden'); }
+        function hideMessageModal() { document.getElementById('messageModal').classList.add('hidden'); }
 
         function clearPartialForm() {
              document.getElementById('varietyInput').value = '';
@@ -586,13 +505,13 @@
              document.getElementById('displayLossPercent').innerText = '-';
         }
 
-        window.clearBlockForm = function(clearAll = false) {
+        function clearBlockForm(clearAll = false) {
             if (clearAll) {
                 document.getElementById('partner').selectedIndex = 0;
                 document.getElementById('startTime').value = '';
                 document.getElementById('endTime').value = '';
                 document.getElementById('collaborators').value = '';
-                window.updateGlobalState();
+                updateGlobalState();
             }
             resetCropField();
             document.getElementById('blockId').value = '';
@@ -607,8 +526,8 @@
             lucide.createIcons();
         }
 
-        window.addSameBlock = function(e) { if(e) e.preventDefault(); processItem(true); }
-        window.addItem = function(e) { if(e) e.preventDefault(); processItem(false); }
+        function addSameBlock(e) { if(e) e.preventDefault(); processItem(true); }
+        function addItem(e) { if(e) e.preventDefault(); processItem(false); }
 
         function processItem(keepBlock) {
             if (!validateHeader()) { document.getElementById('generalDataCard').scrollIntoView({ behavior: 'smooth' }); return; }
@@ -619,8 +538,8 @@
             const finalBlock = blockSelect && !blockSelect.classList.contains('hidden') ? blockSelect.value : document.getElementById('blockId').value;
             
             if(!finalCrop || !finalBlock) {
-                if(!finalCrop) window.toggleError(crop.classList.contains('hidden') ? 'otherCropInput' : 'crop', true);
-                if(!finalBlock) window.toggleError(blockSelect && !blockSelect.classList.contains('hidden') ? 'blockSelect' : 'blockId', true);
+                if(!finalCrop) toggleError(crop.classList.contains('hidden') ? 'otherCropInput' : 'crop', true);
+                if(!finalBlock) toggleError(blockSelect && !blockSelect.classList.contains('hidden') ? 'blockSelect' : 'blockId', true);
                 return;
             }
 
@@ -631,8 +550,8 @@
             const mudasStr = document.getElementById('totalSeedlings').value;
             const plantadoStr = document.getElementById('plantedAmount').value;
             if(!mudasStr || !plantadoStr) {
-                if(!mudasStr) window.toggleError('totalSeedlings', true);
-                if(!plantadoStr) window.toggleError('plantedAmount', true);
+                if(!mudasStr) toggleError('totalSeedlings', true);
+                if(!plantadoStr) toggleError('plantedAmount', true);
                 return;
             }
 
@@ -654,16 +573,15 @@
                 if(keepBlock) { clearPartialForm(); showMessageModal('Adicionado', 'Salvo! Adicione a próxima variedade.', 'success'); } 
                 else clearBlockForm(false);
             }
-            renderReport(); renderList(); savePersistence();
+            renderReport(); renderList();
         }
 
-        window.editItem = function(index) {
+        function editItem(index) {
             const item = appData[index];
             editingIndex = index; 
 
             document.getElementById('partner').value = item.partner;
-            globalInfo.partner = item.partner;
-            globalInfo.date = item.date;
+            updateGlobalState();
             
             const cropSelect = document.getElementById('crop');
             const hasCrop = Array.from(cropSelect.options).some(opt => opt.value === item.crop);
@@ -717,7 +635,7 @@
             lucide.createIcons();
         }
 
-        window.removeItem = function(index) { appData.splice(index, 1); renderReport(); renderList(); savePersistence(); }
+        function removeItem(index) { appData.splice(index, 1); renderReport(); renderList(); }
 
         function renderList() {
             const list = document.getElementById('itemsList');
@@ -773,11 +691,11 @@
                             <div class="grid grid-cols-2 gap-2">
                                 <div class="flex flex-col items-center p-2 bg-emerald-50/50 rounded-lg border border-emerald-100/50">
                                     <span class="text-[8px] font-bold text-emerald-500 uppercase">Plantado</span>
-                                    <span class="font-extrabold text-emerald-700 text-xs">${item.planted.toLocaleString('pt-BR')} <span class="text-[11px] font-black text-emerald-600">(${pPct.toFixed(0)}%)</span></span>
+                                    <span class="font-extrabold text-emerald-700 text-xs">${item.planted.toLocaleString('pt-BR')} <span class="text-[10px] font-bold">(${pPct.toFixed(0)}%)</span></span>
                                 </div>
                                 <div class="flex flex-col items-center p-2 bg-red-50/50 rounded-lg border border-red-100/50">
                                     <span class="text-[8px] font-bold text-red-400 uppercase">Perdas</span>
-                                    <span class="font-bold text-red-600 text-[10px]">${item.losses.toLocaleString('pt-BR')} <span class="text-[11px] font-black text-red-600">(${item.lossPercent}%)</span></span>
+                                    <span class="font-bold text-red-600 text-[10px]">${item.losses.toLocaleString('pt-BR')} <span class="text-[10px] font-bold">(${item.lossPercent}%)</span></span>
                                 </div>
                             </div>
                         </div>`;
@@ -785,7 +703,7 @@
 
                     const bLPPct = bS > 0 ? (bL / bS) * 100 : 0;
                     const bPPPct = bS > 0 ? (bP / bS) * 100 : 0;
-                    cardHtml += `</div><div class="mt-4 pt-3 border-t border-dashed border-slate-200 flex justify-between items-center px-1"><span class="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Total do ${label} ${bVal}</span><div class="flex gap-4 items-center"><div class="text-right"><span class="block text-[8px] font-bold text-emerald-500 uppercase">Plantado</span><span class="text-xs font-black text-emerald-800">${bP.toLocaleString('pt-BR')} <span class="text-[12px] font-black text-emerald-600">(${bPPPct.toFixed(0)}%)</span></span></div><div class="text-right"><span class="block text-[8px] font-bold text-red-400 uppercase">Perdas</span><span class="text-xs font-black text-red-600">${bL.toLocaleString('pt-BR')} <span class="text-[12px] font-black text-red-600">(${bLPPct.toFixed(0)}%)</span></span></div></div></div></div>`;
+                    cardHtml += `</div><div class="mt-4 pt-3 border-t border-dashed border-slate-200 flex justify-between items-center px-1"><span class="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Total do ${label} ${bVal}</span><div class="flex gap-4 items-center"><div class="text-right"><span class="block text-[8px] font-bold text-emerald-500 uppercase">Plantado</span><span class="text-xs font-black text-emerald-800">${bP.toLocaleString('pt-BR')} <span class="text-[11px] font-black text-emerald-600">(${bPPPct.toFixed(0)}%)</span></span></div><div class="text-right"><span class="block text-[8px] font-bold text-red-400 uppercase">Perdas</span><span class="text-xs font-black text-red-600">${bL.toLocaleString('pt-BR')} <span class="text-[11px] font-black text-red-600">(${bLPPct.toFixed(0)}%)</span></span></div></div></div></div>`;
                     container.innerHTML += cardHtml;
                 });
             }
@@ -797,18 +715,18 @@
                 <div class="bg-orange-50 rounded-xl p-4 flex items-center justify-between relative overflow-hidden">
                     <div class="text-center flex-1">
                         <div class="text-[10px] text-emerald-600 font-bold uppercase mb-0.5">TOTAL PLANTADO</div>
-                        <div class="text-xl font-extrabold text-emerald-800">${totalPGlobal.toLocaleString('pt-BR')} <span class="text-[18px] font-black text-emerald-600">(${gPP.toFixed(0)}%)</span></div>
+                        <div class="text-xl font-extrabold text-emerald-800">${totalPGlobal.toLocaleString('pt-BR')} <span class="text-base font-black text-emerald-600">(${gPP.toFixed(0)}%)</span></div>
                     </div>
                     <div class="w-px h-8 bg-orange-200 mx-2"></div>
                     <div class="text-center flex-1">
                         <div class="text-[10px] text-red-400 font-bold uppercase mb-0.5">TOTAL PERDAS</div>
-                        <div class="text-sm font-bold text-red-600">${totalLGlobal.toLocaleString('pt-BR')} <span class="text-[14px] font-black">(${gLP.toFixed(0)}%)</span></div>
+                        <div class="text-sm font-bold text-red-600">${totalLGlobal.toLocaleString('pt-BR')} <span class="text-xs font-black">(${gLP.toFixed(0)}%)</span></div>
                     </div>
                 </div>`;
             lucide.createIcons();
         }
 
-        window.copyToWhatsApp = function() {
+        function copyToWhatsApp() {
             const data = getFilteredData();
             if (data.length === 0) return;
             let text = `Resumo do Plantio – ${new Date().toLocaleDateString('pt-BR')}\n\n`;
@@ -825,7 +743,7 @@
             document.body.removeChild(tA);
         }
 
-        window.downloadImage = async function() {
+        async function downloadImage() {
             const el = document.getElementById('report-card');
             try {
                 const options = {
@@ -845,7 +763,7 @@
             } catch (err) { console.error(err); }
         }
 
-        window.downloadPDF = async function() {
+        async function downloadPDF() {
             const el = document.getElementById('report-card');
             const btn = document.querySelector('#pdfBtn span');
             const original = btn.innerText;
@@ -868,12 +786,6 @@
                 pdf.save(`Relatorio_Tecnico_Plantio_${new Date().toISOString().slice(0,10)}.pdf`);
             } catch (err) { console.error(err); }
             finally { btn.innerText = original; }
-        }
-
-        function getWeekNumber(d) {
-            d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
-            d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
-            return Math.ceil((((d - new Date(Date.UTC(d.getUTCFullYear(), 0, 1))) / 86400000) + 1) / 7);
         }
     </script>
 </body>
