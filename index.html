@@ -318,14 +318,20 @@
                         <h2 id="reportTitle" class="text-sm font-bold leading-snug tracking-normal">
                             <!-- Injetado via JS -->
                         </h2>
-                        <div class="mt-3 pt-3 border-t border-white/20">
+                        <div class="mt-3 pt-3 border-t border-white/20 flex flex-col gap-1">
                              <span id="headerDateTime" class="text-xs font-medium text-teal-100 block opacity-90 tracking-wide">
                                 <!-- Injetado via JS -->
                             </span>
+                             <!-- REMOVIDO: headerOperational do topo -->
                         </div>
                     </div>
                 </div>
                 
+                <!-- 1. BARRA OPERACIONAL (NOVO LOCAL) -->
+                <div id="operationalBar" class="bg-white border-b border-slate-100 px-6 py-4 flex justify-between items-center">
+                    <!-- Conteúdo Injetado via JS -->
+                </div>
+
                 <!-- Painel de Totais (MANTIDO NO TOPO COMO SCOREBOARD) -->
                 <div id="operationalFooter" class="bg-white border-b border-slate-200 p-4 shrink-0 z-10">
                      <!-- Conteúdo injetado via JS -->
@@ -334,11 +340,6 @@
                 <!-- Conteúdo (Lista) -->
                 <div id="reportContent" class="flex-1 overflow-y-auto">
                     <div class="p-8 text-center text-slate-400 text-xs italic leading-relaxed h-full flex items-center justify-center">Utilize o formulário para registrar os plantios.</div>
-                </div>
-
-                <!-- NOVO PAINEL INFERIOR (Operacional + Desempenho) -->
-                <div id="bottomInfoPanel" class="bg-slate-50 border-t border-slate-200 p-4 shrink-0">
-                    <!-- Injetado via JS -->
                 </div>
 
                 <!-- Rodapé da Marca -->
@@ -385,7 +386,7 @@
                     <th style="width: 15%;">Cultura/Var</th>
                     <th style="width: 8%;">Idade</th>
                     <th style="width: 8%;">Bandejas</th>
-                    <th style="width: 12%;">Mudas (Total)</th>
+                    <th style="width: 12%; font-size: 9px;">Mudas Total</th>
                     <th style="width: 12%;">Plantado</th>
                     <th style="width: 10%;">% Plant.</th>
                     <th style="width: 12%;">Perdas</th>
@@ -563,7 +564,7 @@
 
             // localStorage.setItem(GLOBAL_KEY, JSON.stringify(globalInfo));
             updateDynamicTitle();
-            // renderHeaderAndSummary(); // Removido, agora renderizado no final (BottomPanel)
+            // REMOVIDO: renderBottomInfo() - Info movida para a barra superior
             renderList();
             renderReport();
         }
@@ -824,6 +825,7 @@
             document.getElementById('reportTitle').innerHTML = titleHTML;
 
             const dateElement = document.getElementById('headerDateTime');
+            
             if (globalInfo.date) {
                 const parts = globalInfo.date.split('-');
                 const day = parts[2];
@@ -838,6 +840,34 @@
                 dateElement.style.opacity = "1";
             } else {
                 dateElement.innerText = "Data:";
+            }
+            
+            // OPERATIONAL BAR (ABAIXO DO CABEÇALHO)
+            const opBar = document.getElementById('operationalBar');
+            if (opBar) {
+                const collab = globalInfo.collaborators || '-';
+                
+                let timeInfo = "00:00 até 00:00";
+                let durationInfo = "";
+                if(globalInfo.startTime && globalInfo.endTime) {
+                    timeInfo = `${globalInfo.startTime} até às ${globalInfo.endTime}`;
+                    if(globalInfo.duration) durationInfo = `(${globalInfo.duration})`;
+                }
+                
+                // Layout conforme o print:
+                // Esquerda: "OPERACIONAL / Colaboradores: X"
+                // Direita: "HORÁRIO DE PLANTIO / HH:MM até HH:MM (Duração)"
+                
+                opBar.innerHTML = `
+                    <div class="flex flex-col">
+                        <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">Operacional</span>
+                        <span class="text-sm font-bold text-slate-700">Colaboradores: ${collab}</span>
+                    </div>
+                    <div class="flex flex-col items-end">
+                        <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">Horário de Plantio</span>
+                        <span class="text-sm font-bold text-slate-700">${timeInfo} <span class="text-slate-400 font-normal text-xs">${durationInfo}</span></span>
+                    </div>
+                `;
             }
         }
 
@@ -1220,37 +1250,7 @@
             lucide.createIcons();
         }
 
-        // Nova função para renderizar o rodapé com informações operacionais
-        function renderBottomInfo(totalPlanted) {
-            const container = document.getElementById('bottomInfoPanel');
-            const collab = parseInt(globalInfo.collaborators) || 0;
-            const hours = globalInfo.hoursDecimal || 0;
-            
-            // Cálculos de desempenho removidos da visualização (ainda existem no Zap se necessário)
-            
-            let timeRange = "Não informado";
-            if (globalInfo.startTime && globalInfo.endTime) {
-                timeRange = `${globalInfo.startTime} até ${globalInfo.endTime}`;
-                if (globalInfo.duration) timeRange += ` (${globalInfo.duration})`;
-            }
-
-            container.innerHTML = `
-                <div class="flex flex-col gap-4">
-                     <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest border-b border-slate-200 pb-2 mb-1">Resumo Operacional</h3>
-                     
-                     <!-- Info Geral -->
-                     <div class="flex justify-between items-center text-xs text-slate-600 bg-white p-3 rounded-2xl border border-slate-200">
-                        <div class="flex items-center gap-2">
-                            <span class="font-medium">${timeRange}</span>
-                        </div>
-                        <div class="flex items-center gap-2">
-                             <span class="font-medium">Colaboradores: <b>${collab || '-'}</b></span>
-                        </div>
-                     </div>
-                </div>
-            `;
-            lucide.createIcons();
-        }
+        // REMOVIDO: renderBottomInfo e suas chamadas foram removidas, pois a info foi para updateDynamicTitle
 
         function renderReport() {
             const container = document.getElementById('reportContent');
@@ -1263,109 +1263,65 @@
             if (displayData.length === 0) {
                 container.innerHTML = `<div class="p-8 text-center text-slate-400 text-xs italic leading-relaxed h-full flex flex-col items-center justify-center"><i data-lucide="sprout" class="mb-2 w-8 h-8 opacity-20"></i><span>Adicione registros de plantio.</span></div>`;
             } else {
-                // Ordenação
-                displayData.sort((a, b) => {
-                    // Ordena por Bloco (Numérico)
-                    const blockDiff = a.block.localeCompare(b.block, undefined, {numeric: true, sensitivity: 'base'});
-                    if (blockDiff !== 0) return blockDiff;
-                    // Se mesmo bloco, ordena por cultura
-                    return a.crop.localeCompare(b.crop);
-                });
-
-                // Agrupamento
-                const groups = {};
-                displayData.forEach(item => {
-                    const key = `${item.block}|${item.crop}`;
-                    if (!groups[key]) {
-                        groups[key] = {
-                            block: item.block,
-                            crop: item.crop,
-                            items: []
-                        };
-                    }
-                    groups[key].items.push(item);
-                });
-
-                // Renderização
-                for (const key in groups) {
-                    const group = groups[key];
+                displayData.sort((a, b) => a.block.localeCompare(b.block, undefined, {numeric: true, sensitivity: 'base'}));
+                displayData.forEach((item) => { 
+                    totalPlanted += parseInt(item.planted);
+                    totalLosses += parseInt(item.losses);
                     let locationLabel = "Bloco";
-                    if (group.crop && group.crop.toLowerCase().includes('pepino')) locationLabel = "Setor";
+                    if (item.crop && item.crop.toLowerCase().includes('pepino')) locationLabel = "Setor";
 
-                    // HTML do container do grupo
-                    let groupHtml = `
-                    <div class="border-b-4 border-slate-100 last:border-0 bg-white">
-                        <div class="bg-slate-50/50 px-5 py-3 border-b border-slate-100 flex items-center gap-2">
-                            <span class="text-sm font-extrabold text-slate-800">${locationLabel} ${group.block}</span>
-                            <span class="text-slate-300 text-xs">•</span>
-                            <span class="text-sm font-semibold text-emerald-700">${group.crop}</span>
-                        </div>
-                        <div class="divide-y divide-slate-50">
-                    `;
+                    const plantedPercent = item.seedlings > 0 ? (item.planted / item.seedlings) * 100 : 0;
 
-                    // HTML dos itens (Variedades)
-                    group.items.forEach(item => {
-                        totalPlanted += parseInt(item.planted);
-                        totalLosses += parseInt(item.losses);
-                        const plantedPercent = item.seedlings > 0 ? (item.planted / item.seedlings) * 100 : 0;
-                        
-                        groupHtml += `
-                            <div class="p-5 hover:bg-slate-50 transition-colors">
-                                <div class="mb-3">
-                                    <span class="text-sm font-bold text-slate-700">${item.variety || 'Padrão'}</span>
-                                </div>
-                                
-                                <!-- Grid Superior: Plantado e Perdas -->
-                                <div class="grid grid-cols-2 gap-2 mb-2">
-                                    <div class="flex flex-col items-center p-2 bg-emerald-50 rounded-2xl border border-emerald-100 relative overflow-hidden">
-                                        <span class="text-[9px] font-bold text-emerald-500 uppercase relative z-10">Plantado</span>
-                                        <span class="font-extrabold text-emerald-700 text-sm relative z-10">${item.planted.toLocaleString('pt-BR')} <span class="text-[9px] opacity-80">(${plantedPercent.toFixed(0)}%)</span></span>
-                                    </div>
-                                    <div class="flex flex-col items-center p-2 bg-red-50 rounded-2xl border border-red-100">
-                                        <span class="text-[9px] font-bold text-red-400 uppercase">Perdas</span>
-                                        <span class="font-bold text-red-600 text-xs">${item.losses.toLocaleString('pt-BR')} <span class="text-[9px] opacity-80">(${item.lossPercent}%)</span></span>
-                                    </div>
-                                </div>
-
-                                <!-- Grid Inferior: Bandejas, Mudas, Idade -->
-                                <div class="grid grid-cols-3 gap-2">
-                                    <div class="flex flex-col items-center p-2 bg-slate-50 rounded-2xl border border-slate-100">
-                                        <span class="text-[9px] font-bold text-slate-400 uppercase">Bandejas</span>
-                                        <span class="font-bold text-slate-600 text-xs">${item.trays || '-'}</span>
-                                    </div>
-                                    <div class="flex flex-col items-center p-2 bg-slate-50 rounded-2xl border border-slate-100">
-                                        <span class="text-[9px] font-bold text-slate-400 uppercase">Mudas</span>
-                                        <span class="font-bold text-slate-600 text-xs">${item.seedlings.toLocaleString('pt-BR')}</span>
-                                    </div>
-                                    <div class="flex flex-col items-center p-2 bg-slate-50 rounded-2xl border border-slate-100">
-                                        <span class="text-[9px] font-bold text-slate-400 uppercase">Idade</span>
-                                        <span class="font-bold text-slate-600 text-xs">${item.age ? item.age + ' dias' : '-'}</span>
-                                    </div>
-                                </div>
-                                ${item.notes ? `<div class="mt-3 text-[10px] text-slate-400 italic border-l-2 border-slate-200 pl-2">Obs: ${item.notes}</div>` : ''}
+                    const html = `
+                    <div class="p-5 hover:bg-slate-50 transition-colors group border-b border-slate-50 last:border-0">
+                        <div class="flex flex-col gap-3">
+                            <div>
+                                <span class="text-sm font-bold text-slate-700 block mb-1">${locationLabel} ${item.block} • ${item.crop} <span class="text-slate-400 font-normal">(${item.variety || '-'})</span></span>
                             </div>
-                        `;
-                    });
+                            
+                            <div class="grid grid-cols-2 gap-2">
+                                <div class="flex flex-col items-center p-2 bg-emerald-50 rounded border border-emerald-100">
+                                    <span class="text-[9px] font-bold text-emerald-500 uppercase">Plantado</span>
+                                    <span class="font-extrabold text-emerald-700 text-sm">${item.planted.toLocaleString('pt-BR')} <span class="text-[9px] opacity-80">(${plantedPercent.toFixed(0)}%)</span></span>
+                                </div>
+                                <div class="flex flex-col items-center p-2 bg-red-50 rounded border border-red-100">
+                                    <span class="text-[9px] font-bold text-red-400 uppercase">Perdas</span>
+                                    <span class="font-bold text-red-600 text-xs">${item.losses.toLocaleString('pt-BR')} <span class="text-[9px] opacity-80">(${item.lossPercent}%)</span></span>
+                                </div>
+                            </div>
 
-                    groupHtml += `</div></div>`; // Fecha divide-y e container
-                    container.innerHTML += groupHtml;
-                }
+                            <div class="grid grid-cols-3 gap-2">
+                                <div class="flex flex-col items-center p-2 bg-slate-50 rounded border border-slate-100">
+                                    <span class="text-[9px] font-bold text-slate-400 uppercase">Bandejas</span>
+                                    <span class="font-bold text-slate-600 text-xs">${item.trays || '-'}</span>
+                                </div>
+                                <div class="flex flex-col items-center p-2 bg-slate-50 rounded border border-slate-100">
+                                    <span class="text-[9px] font-bold text-slate-400 uppercase">Mudas</span>
+                                    <span class="font-bold text-slate-600 text-xs">${item.seedlings.toLocaleString('pt-BR')}</span>
+                                </div>
+                                <div class="flex flex-col items-center p-2 bg-slate-50 rounded border border-slate-100">
+                                    <span class="text-[9px] font-bold text-slate-400 uppercase">Idade</span>
+                                    <span class="font-bold text-slate-600 text-xs">${item.age ? item.age + ' dias' : '-'}</span>
+                                </div>
+                            </div>
+                        </div>
+                        ${item.notes ? `<div class="mt-3 text-[10px] text-slate-400 italic border-l-2 border-slate-200 pl-2">Obs: ${item.notes}</div>` : ''}
+                    </div>`;
+                    container.innerHTML += html;
+                });
             }
             
-            // Total Geral e Percentuais
             const totalMudas = totalPlanted + totalLosses;
             const avgLossPercent = totalMudas > 0 ? (totalLosses / totalMudas) * 100 : 0;
             const avgPlantedPercent = totalMudas > 0 ? (totalPlanted / totalMudas) * 100 : 0;
 
-            // Alterado para incluir percentual no Total Plantado
             footerContainer.innerHTML = `
-                <div class="bg-orange-50 rounded-2xl p-4 flex items-center justify-between relative overflow-hidden">
+                <div class="bg-orange-50 rounded-xl p-4 flex items-center justify-between relative overflow-hidden">
                     <div class="text-center flex-1">
                         <div class="text-[10px] text-emerald-600 font-bold uppercase mb-0.5">TOTAL PLANTADO</div>
                         <div class="text-xl font-extrabold text-emerald-800">${totalPlanted.toLocaleString('pt-BR')} <span class="text-sm font-bold text-emerald-600">(${avgPlantedPercent.toFixed(0)}%)</span></div>
                     </div>
                     
-                    <!-- Linha Divisória -->
                     <div class="w-px h-8 bg-orange-200 mx-2"></div>
 
                     <div class="text-center flex-1">
@@ -1373,9 +1329,6 @@
                         <div class="text-sm font-bold text-red-600">${totalLosses.toLocaleString('pt-BR')} (${avgLossPercent.toFixed(0)}%)</div>
                     </div>
                 </div>`;
-            
-            // Chama renderização do painel inferior passando o total plantado calculado
-            renderBottomInfo(totalPlanted);
             
             lucide.createIcons();
         }
@@ -1398,68 +1351,33 @@
 
             const collab = globalInfo.collaborators || '-';
             
-            // CONSTRUÇÃO DO TEXTO
-            // Alterado de "plantio" para "Plantio"
             let text = `Resumo do Plantio – ${dateStr}\n\n`;
 
-            // Ordenação (mesma do render)
-            displayData.sort((a, b) => {
-                const blockDiff = a.block.localeCompare(b.block, undefined, {numeric: true, sensitivity: 'base'});
-                if (blockDiff !== 0) return blockDiff;
-                return a.crop.localeCompare(b.crop);
-            });
+            displayData.sort((a, b) => a.block.localeCompare(b.block, undefined, {numeric: true, sensitivity: 'base'}));
 
-            // Agrupamento
-            const groups = {};
-            let totalPlanted = 0;
             displayData.forEach(item => {
-                const key = `${item.block}|${item.crop}`;
-                if (!groups[key]) {
-                    groups[key] = {
-                        block: item.block,
-                        crop: item.crop,
-                        items: []
-                    };
-                }
-                groups[key].items.push(item);
-                totalPlanted += item.planted;
-            });
-
-            // Geração do texto
-            for (const key in groups) {
-                const group = groups[key];
                 let locationLabel = "Bloco";
-                if (group.crop && group.crop.toLowerCase().includes('pepino')) locationLabel = "Setor";
+                if (item.crop && item.crop.toLowerCase().includes('pepino')) locationLabel = "Setor";
                 
-                text += `*${locationLabel} ${group.block} • ${group.crop}*\n`;
-                
-                group.items.forEach(item => {
-                    const mudasF = item.seedlings.toLocaleString('pt-BR');
-                    const plantadoF = item.planted.toLocaleString('pt-BR');
-                    const perdasF = item.losses.toLocaleString('pt-BR');
-                    
-                    text += `> Var: ${item.variety || 'Padrão'}\n`;
-                    text += `Plantado: ${plantadoF}\n`;
-                    text += `Perdas: ${perdasF} (${item.lossPercent}%)\n`;
-                    text += `(B: ${item.trays || '-'} / M: ${mudasF})\n`;
-                    if(item.notes) text += `Obs: ${item.notes}\n`;
-                    text += `\n`;
-                });
-                text += `--------------------------------\n`;
-            }
+                const mudasF = item.seedlings.toLocaleString('pt-BR');
+                const plantadoF = item.planted.toLocaleString('pt-BR');
+                const perdasF = item.losses.toLocaleString('pt-BR');
 
-            // Desempenho no Zap
-            const hours = globalInfo.hoursDecimal || 0;
-            const nCollab = parseInt(collab) || 0;
-            if (hours > 0 && totalPlanted > 0) {
-                 const tp = Math.round(totalPlanted / hours).toLocaleString('pt-BR');
-                 text += `*Média Equipe:* ${tp} un/h\n`;
-                 if(nCollab > 0) {
-                     const ip = Math.round((totalPlanted / hours) / nCollab).toLocaleString('pt-BR');
-                     text += `*Média Individual:* ${ip} un/h\n`;
-                 }
-                 text += `\n`;
-            }
+                text += `${locationLabel}: ${item.block}\n`;
+                text += `Bandejas: ${item.trays || '-'}\n`;
+                text += `Mudas: ${mudasF}\n`;
+                text += `Plantado: ${plantadoF}\n\n`;
+                
+                text += `Cultura: ${item.crop}\n`;
+                text += `Variedade: ${item.variety || '-'}\n`;
+                text += `Perdas: ${perdasF}\n`;
+                text += `Idade: ${item.age ? item.age + ' dias' : '-'}\n\n`;
+                
+                text += `Total de Unidades: ${plantadoF}\n`;
+                text += `Total de Perdas: ${perdasF}\n`;
+                text += `Percentual de Perdas: ${item.lossPercent}%\n\n`;
+                text += `--------------------------------\n\n`;
+            });
 
             if (globalInfo.startTime && globalInfo.endTime) {
                 text += `Horário: ${globalInfo.startTime} até às ${globalInfo.endTime}`;
@@ -1469,7 +1387,10 @@
                 text += `Horário: Não informado.\n\n`;
             }
 
-            text += `Colaboradores: ${collab}\n`;
+            text += `Colaboradores: ${collab}\n\n`;
+            
+            const obs = displayData.find(i => i.notes)?.notes || '';
+            text += `Observações: ${obs}`;
 
             const textArea = document.createElement("textarea");
             textArea.value = text;
@@ -1502,14 +1423,12 @@
                     return;
                 }
 
-                // Captura dimensões exatas do elemento na tela
                 const rect = element.getBoundingClientRect();
                 
                 const options = {
-                    scale: 3, // Alta resolução
+                    scale: 3, 
                     useCORS: true, 
                     allowTaint: true,
-                    // Ajuste crítico de scroll para evitar cortes
                     scrollY: -window.scrollY,
                     width: rect.width,
                     height: element.scrollHeight,
@@ -1519,7 +1438,6 @@
                         const el = doc.getElementById('report-card');
                         const content = doc.getElementById('reportContent');
                         
-                        // 1. Congela o container principal
                         if (el) {
                             el.style.width = rect.width + 'px';
                             el.style.height = 'auto';
@@ -1530,40 +1448,32 @@
                             el.style.boxShadow = 'none';
                         }
 
-                        // 2. SOLUÇÃO RADICAL: Trava quebra de linha em dados importantes
                         const criticalData = doc.querySelectorAll('.font-bold, .font-extrabold, .text-xs, .text-sm, h3, span');
                         criticalData.forEach(item => {
-                            // Se o texto for curto, proíbe quebra de linha
                             if(item.innerText.length < 50 && !item.classList.contains('whitespace-normal')) {
                                 item.style.whiteSpace = 'nowrap';
                             }
                         });
 
-                        // 3. Forçar alinhamento de texto em elementos gerais
                         const textCenters = doc.querySelectorAll('.text-center');
                         textCenters.forEach(t => {
                             t.style.textAlign = 'center';
                             t.style.width = '100%';
                         });
 
-                        // 4. Ícones SVG: Garantir tamanho fixo e alinhamento
                         const icons = doc.querySelectorAll('svg');
                         icons.forEach(icon => {
                             const w = icon.getAttribute('width') || 20;
                             const h = icon.getAttribute('height') || 20;
-                            
                             icon.style.width = w + 'px';
                             icon.style.height = h + 'px';
-                            icon.style.minWidth = w + 'px'; // Impede esmagamento
-                            
-                            // Se não foi tratado pelo loop anterior (flexCentered), garante inline-block
+                            icon.style.minWidth = w + 'px';
                             if (icon.style.display !== 'inline-block') {
                                 icon.style.display = 'inline-block';
                                 icon.style.verticalAlign = 'middle';
                             }
                         });
 
-                        // Expande conteúdo para print
                         if (content) { 
                             content.style.height = 'auto'; 
                             content.style.overflow = 'visible'; 
@@ -1608,6 +1518,9 @@
             if (globalInfo.date) {
                 const parts = globalInfo.date.split('-');
                 dateStr = `${parts[2]}/${parts[1]}/${parts[0]}`;
+                const dateObj = new Date(parts[0], parts[1] - 1, parts[2]);
+                const weekNum = getWeekNumber(dateObj);
+                dateStr += ` - Semana ${weekNum}`;
             }
             document.getElementById('pdf-date').innerText = dateStr || '-';
             document.getElementById('pdf-collaborators').innerText = globalInfo.collaborators || '-';
@@ -1628,7 +1541,6 @@
                 let locationLabel = "Bloco";
                 if (item.crop && item.crop.toLowerCase().includes('pepino')) locationLabel = "Setor";
                 
-                // MODIFICAÇÃO: toFixed(0) para PDF
                 const plantedPercent = item.seedlings > 0 ? (item.planted / item.seedlings) * 100 : 0;
 
                 const tr = document.createElement('tr');
