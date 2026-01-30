@@ -599,7 +599,8 @@
                 const percent = (perdas / mudas) * 100;
                 
                 displayLoss.innerText = perdas.toLocaleString('pt-BR'); // Exibe formatado
-                displayPercent.innerText = percent.toFixed(1) + '%';
+                // MODIFICAÇÃO: toFixed(0) para não mostrar casas decimais
+                displayPercent.innerText = percent.toFixed(0) + '%';
                 
                 if(perdas < 0) {
                      displayLoss.innerText = "Erro";
@@ -1059,7 +1060,8 @@
                 seedlings: mudasVal,
                 planted: plantadoVal,
                 losses: perdasVal,
-                lossPercent: perdasPercent.toFixed(1),
+                // MODIFICAÇÃO: toFixed(0) para salvar sem decimais
+                lossPercent: perdasPercent.toFixed(0),
                 notes: document.getElementById('notes').value
             };
 
@@ -1224,22 +1226,8 @@
             const collab = parseInt(globalInfo.collaborators) || 0;
             const hours = globalInfo.hoursDecimal || 0;
             
-            let teamPerformance = "-";
-            let indivPerformance = "-";
-
-            // Cálculo de Desempenho
-            if (hours > 0 && totalPlanted > 0) {
-                // Equipe: Total Plantado / Horas
-                const tp = totalPlanted / hours;
-                teamPerformance = Math.round(tp).toLocaleString('pt-BR') + ' un/h';
-
-                // Individual: Equipe / Colaboradores
-                if (collab > 0) {
-                    const ip = tp / collab;
-                    indivPerformance = Math.round(ip).toLocaleString('pt-BR') + ' un/h';
-                }
-            }
-
+            // Cálculos de desempenho removidos da visualização (ainda existem no Zap se necessário)
+            
             let timeRange = "Não informado";
             if (globalInfo.startTime && globalInfo.endTime) {
                 timeRange = `${globalInfo.startTime} até ${globalInfo.endTime}`;
@@ -1250,24 +1238,9 @@
                 <div class="flex flex-col gap-4">
                      <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest border-b border-slate-200 pb-2 mb-1">Resumo Operacional</h3>
                      
-                     <!-- Grid de Desempenho -->
-                     <div class="grid grid-cols-2 gap-4">
-                        <div class="bg-white p-3 rounded-2xl border border-slate-200 shadow-sm flex flex-col items-center justify-center text-center">
-                            <i data-lucide="users" class="w-5 h-5 text-indigo-500 mb-1"></i>
-                            <span class="text-[10px] text-slate-400 font-bold uppercase">Média Equipe</span>
-                            <span class="text-lg font-bold text-slate-700">${teamPerformance}</span>
-                        </div>
-                        <div class="bg-white p-3 rounded-2xl border border-slate-200 shadow-sm flex flex-col items-center justify-center text-center">
-                            <i data-lucide="user" class="w-5 h-5 text-blue-500 mb-1"></i>
-                            <span class="text-[10px] text-slate-400 font-bold uppercase">Média Individual</span>
-                            <span class="text-lg font-bold text-slate-700">${indivPerformance}</span>
-                        </div>
-                     </div>
-
                      <!-- Info Geral -->
                      <div class="flex justify-between items-center text-xs text-slate-600 bg-white p-3 rounded-2xl border border-slate-200">
                         <div class="flex items-center gap-2">
-                            <i data-lucide="clock" class="w-4 h-4 text-slate-400"></i>
                             <span class="font-medium">${timeRange}</span>
                         </div>
                         <div class="flex items-center gap-2">
@@ -1338,16 +1311,15 @@
                         
                         groupHtml += `
                             <div class="p-5 hover:bg-slate-50 transition-colors">
-                                <div class="mb-3 flex items-center gap-2">
-                                    <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">Variedade</span>
-                                    <span class="text-sm font-bold text-slate-600">${item.variety || 'Padrão'}</span>
+                                <div class="mb-3">
+                                    <span class="text-sm font-bold text-slate-700">${item.variety || 'Padrão'}</span>
                                 </div>
                                 
                                 <!-- Grid Superior: Plantado e Perdas -->
                                 <div class="grid grid-cols-2 gap-2 mb-2">
                                     <div class="flex flex-col items-center p-2 bg-emerald-50 rounded-2xl border border-emerald-100 relative overflow-hidden">
                                         <span class="text-[9px] font-bold text-emerald-500 uppercase relative z-10">Plantado</span>
-                                        <span class="font-extrabold text-emerald-700 text-sm relative z-10">${item.planted.toLocaleString('pt-BR')} <span class="text-[9px] opacity-80">(${plantedPercent.toFixed(1)}%)</span></span>
+                                        <span class="font-extrabold text-emerald-700 text-sm relative z-10">${item.planted.toLocaleString('pt-BR')} <span class="text-[9px] opacity-80">(${plantedPercent.toFixed(0)}%)</span></span>
                                     </div>
                                     <div class="flex flex-col items-center p-2 bg-red-50 rounded-2xl border border-red-100">
                                         <span class="text-[9px] font-bold text-red-400 uppercase">Perdas</span>
@@ -1390,7 +1362,7 @@
                 <div class="bg-orange-50 rounded-2xl p-4 flex items-center justify-between relative overflow-hidden">
                     <div class="text-center flex-1">
                         <div class="text-[10px] text-emerald-600 font-bold uppercase mb-0.5">TOTAL PLANTADO</div>
-                        <div class="text-xl font-extrabold text-emerald-800">${totalPlanted.toLocaleString('pt-BR')} <span class="text-sm font-bold text-emerald-600">(${avgPlantedPercent.toFixed(1)}%)</span></div>
+                        <div class="text-xl font-extrabold text-emerald-800">${totalPlanted.toLocaleString('pt-BR')} <span class="text-sm font-bold text-emerald-600">(${avgPlantedPercent.toFixed(0)}%)</span></div>
                     </div>
                     
                     <!-- Linha Divisória -->
@@ -1398,7 +1370,7 @@
 
                     <div class="text-center flex-1">
                         <div class="text-[10px] text-red-400 font-bold uppercase mb-0.5">TOTAL PERDAS</div>
-                        <div class="text-sm font-bold text-red-600">${totalLosses.toLocaleString('pt-BR')} (${avgLossPercent.toFixed(1)}%)</div>
+                        <div class="text-sm font-bold text-red-600">${totalLosses.toLocaleString('pt-BR')} (${avgLossPercent.toFixed(0)}%)</div>
                     </div>
                 </div>`;
             
@@ -1516,7 +1488,7 @@
             document.body.removeChild(textArea);
         }
 
-        // --- FUNÇÃO PARA GERAR IMAGEM HD (CORRIGIDA) ---
+        // --- FUNÇÃO PARA GERAR IMAGEM HD (SOLUÇÃO DEFINITIVA DE ALINHAMENTO) ---
         async function downloadImage() {
             const element = document.getElementById('report-card');
             const btnSpan = document.querySelector('button[onclick="downloadImage()"] span');
@@ -1530,66 +1502,68 @@
                     return;
                 }
 
-                // 1. Captura dimensões INTEIRAS (offsetWidth é inteiro, getBoundingClientRect é float)
-                // Usar inteiros evita erros de arredondamento que causam quebra de linha
-                const width = element.offsetWidth;
-                const height = element.scrollHeight;
-
+                // Captura dimensões exatas do elemento na tela
+                const rect = element.getBoundingClientRect();
+                
                 const options = {
-                    scale: 3, // Mantém alta resolução
+                    scale: 3, // Alta resolução
                     useCORS: true, 
                     allowTaint: true,
+                    // Ajuste crítico de scroll para evitar cortes
                     scrollY: -window.scrollY,
-                    width: width,   // Define largura do canvas
-                    height: height, // Define altura do canvas
-                    windowWidth: width, // Força a janela de renderização a ter a mesma largura
+                    width: rect.width,
+                    height: element.scrollHeight,
                     backgroundColor: '#ffffff',
                     
                     onclone: (doc) => {
                         const el = doc.getElementById('report-card');
                         const content = doc.getElementById('reportContent');
                         
+                        // 1. Congela o container principal
                         if (el) {
-                            // Fixa as dimensões no estilo do elemento clonado
-                            el.style.width = width + 'px';
-                            el.style.height = height + 'px';
+                            el.style.width = rect.width + 'px';
+                            el.style.height = 'auto';
                             el.style.margin = '0';
                             el.style.padding = '0';
                             el.style.border = 'none';
+                            el.style.borderRadius = '0';
                             el.style.boxShadow = 'none';
                         }
 
-                        // --- PROTEÇÃO CONTRA DESALINHAMENTO ---
-                        
-                        // 1. Forçar alinhamento central (Flexbox)
-                        const centeredFlex = doc.querySelectorAll('.flex-col.items-center');
-                        centeredFlex.forEach(div => {
-                            div.style.display = 'flex';
-                            div.style.flexDirection = 'column';
-                            div.style.alignItems = 'center';
-                            div.style.justifyContent = 'center';
-                            div.style.textAlign = 'center';
-                        });
-
-                        // 2. Impedir quebra de linha em textos críticos (números e rótulos)
-                        // Isso é o que impede o texto de "cair"
-                        const statsText = doc.querySelectorAll('.font-bold, .font-extrabold, .text-xs, .text-sm, span, h3');
-                        statsText.forEach(t => {
-                            // Aplica apenas se não for um texto longo de observação
-                            if(t.innerText.length < 50 && !t.classList.contains('whitespace-normal')) {
-                                t.style.whiteSpace = 'nowrap';
-                                t.style.display = 'inline-block'; // Ajuda a respeitar o nowrap
+                        // 2. SOLUÇÃO RADICAL: Trava quebra de linha em dados importantes
+                        const criticalData = doc.querySelectorAll('.font-bold, .font-extrabold, .text-xs, .text-sm, h3, span');
+                        criticalData.forEach(item => {
+                            // Se o texto for curto, proíbe quebra de linha
+                            if(item.innerText.length < 50 && !item.classList.contains('whitespace-normal')) {
+                                item.style.whiteSpace = 'nowrap';
                             }
                         });
 
-                        // 3. Estabilizar Ícones SVG
-                        const icons = doc.querySelectorAll('svg');
-                        icons.forEach(icon => {
-                            icon.style.display = 'block'; // Bloco para respeitar margem auto
-                            icon.style.margin = '0 auto'; // Centraliza horizontalmente
-                            icon.style.flexShrink = '0';  // Não encolher
+                        // 3. Forçar alinhamento de texto em elementos gerais
+                        const textCenters = doc.querySelectorAll('.text-center');
+                        textCenters.forEach(t => {
+                            t.style.textAlign = 'center';
+                            t.style.width = '100%';
                         });
 
+                        // 4. Ícones SVG: Garantir tamanho fixo e alinhamento
+                        const icons = doc.querySelectorAll('svg');
+                        icons.forEach(icon => {
+                            const w = icon.getAttribute('width') || 20;
+                            const h = icon.getAttribute('height') || 20;
+                            
+                            icon.style.width = w + 'px';
+                            icon.style.height = h + 'px';
+                            icon.style.minWidth = w + 'px'; // Impede esmagamento
+                            
+                            // Se não foi tratado pelo loop anterior (flexCentered), garante inline-block
+                            if (icon.style.display !== 'inline-block') {
+                                icon.style.display = 'inline-block';
+                                icon.style.verticalAlign = 'middle';
+                            }
+                        });
+
+                        // Expande conteúdo para print
                         if (content) { 
                             content.style.height = 'auto'; 
                             content.style.overflow = 'visible'; 
@@ -1654,7 +1628,7 @@
                 let locationLabel = "Bloco";
                 if (item.crop && item.crop.toLowerCase().includes('pepino')) locationLabel = "Setor";
                 
-                // Calculate planted percentage
+                // MODIFICAÇÃO: toFixed(0) para PDF
                 const plantedPercent = item.seedlings > 0 ? (item.planted / item.seedlings) * 100 : 0;
 
                 const tr = document.createElement('tr');
@@ -1665,7 +1639,7 @@
                     <td>${item.trays || '-'}</td>
                     <td>${item.seedlings.toLocaleString('pt-BR')}</td>
                     <td>${item.planted.toLocaleString('pt-BR')}</td>
-                    <td>${plantedPercent.toFixed(1)}%</td>
+                    <td>${plantedPercent.toFixed(0)}%</td>
                     <td>${item.losses.toLocaleString('pt-BR')}</td>
                     <td>${item.lossPercent}%</td>
                 `;
