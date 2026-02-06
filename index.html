@@ -248,7 +248,7 @@
                             <i data-lucide="plus" width="16" height="16"></i> <span class="text-xs sm:text-sm">Add Variedade</span>
                         </button>
                         <button type="submit" id="submitBtn" class="flex-1 bg-slate-800 hover:bg-slate-900 text-white font-bold py-3 rounded-xl transition-all flex justify-center items-center gap-2 shadow-lg active:scale-95">
-                            <i data-lucide="check" width="16" height="16"></i> <span class="text-xs sm:text-sm">Finalizar Bloco</span>
+                            <span class="text-xs sm:text-sm">Finalizar Bloco</span>
                         </button>
                    </div>
                 </form>
@@ -338,11 +338,32 @@
         </div>
     </div>
     
+    <!-- MODAIS -->
+    <div id="clearAllModal" class="fixed inset-0 bg-black/50 z-50 hidden flex justify-center items-center backdrop-blur-sm transition-opacity duration-300">
+        <div class="bg-white rounded-xl shadow-2xl p-6 w-11/12 max-w-sm">
+            <div class="text-center mb-5"><h3 class="text-lg font-bold text-slate-800">Limpar Tudo?</h3></div>
+            <div class="flex gap-3">
+                <button onclick="hideClearAllModal()" class="flex-1 px-4 py-2 bg-slate-100 rounded-lg text-sm font-bold">Não</button>
+                <button onclick="confirmClearAll()" class="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-bold">Sim, Limpar</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="messageModal" class="fixed inset-0 bg-black/50 z-50 hidden flex justify-center items-center backdrop-blur-sm transition-opacity duration-300">
+        <div class="bg-white rounded-xl shadow-2xl p-6 w-11/12 max-w-sm text-center">
+            <div id="msgIconContainer" class="mx-auto h-12 w-12 rounded-full mb-4 flex items-center justify-center"></div>
+            <h3 id="msgTitle" class="text-lg font-bold text-slate-800"></h3>
+            <p id="msgText" class="text-sm text-slate-500 mt-2 mb-4"></p>
+            <button onclick="hideMessageModal()" class="w-full px-4 py-2 bg-slate-800 text-white rounded-lg text-sm font-bold">OK</button>
+        </div>
+    </div>
+
     <script>
         const varietiesCauliflower = ["26972 RZ", "Alcala", "Champagne Snow", "Copacabana", "Ponto Perde", "Serena", "SF-1758", "Supremo", "Tirsuli", "Vereda", "Vereda F1", "Vigor F1"];
         const varietiesBroccoli = ["Bragantino F1", "BRO 68 Syngenta", "Claramont", "Master TSV", "PHAR LAP", "Sakata Jiraya F1"];
         const varietiesCucumber = ["AGX40404", "Aikido", "Tikara", "Tsuyataro"];
 
+        // Carregar do Local Storage
         let appData = JSON.parse(localStorage.getItem('spg_transplantio_data')) || [];
         let globalInfo = JSON.parse(localStorage.getItem('spg_transplantio_global')) || { partner: '', date: '', collaborators: '', startTime: '', endTime: '', duration: '' };
         let editingIndex = -1;
@@ -383,11 +404,13 @@
             const partner = globalInfo.partner || 'Local';
             document.getElementById('reportTitle').innerHTML = `Resumo de Transplantio<br>${partner}`;
             const dateEl = document.getElementById('headerDateTime');
-            if (globalInfo.date) {
-                const parts = globalInfo.date.split('-');
-                const dObj = new Date(parts[0], parts[1] - 1, parts[2]);
-                dateEl.innerText = `Data: ${parts[2]}/${parts[1]}/${parts[0]} - Semana ${getWeekNumber(dObj)}`;
-            } else dateEl.innerText = "Data:";
+            if (dateEl) {
+                if (globalInfo.date) {
+                    const parts = globalInfo.date.split('-');
+                    const dObj = new Date(parts[0], parts[1] - 1, parts[2]);
+                    dateEl.innerText = `Data: ${parts[2]}/${parts[1]}/${parts[0]} - Semana ${getWeekNumber(dObj)}`;
+                } else dateEl.innerText = "Data:";
+            }
             
             const opBar = document.getElementById('operationalBar');
             if (opBar) {
@@ -415,7 +438,7 @@
                 blockLabel.innerText = 'Nº Bloco'; useSelect = true; 
                 for (let i = 1; i <= 19; i++) options.push(i.toString());
                 options.push('A', 'B', 'C', 'D', 'E');
-            } else { blockLabel.innerText = 'Nº Bloco'; useSelect = false; }
+            } else { blockLabel.innerText = 'Bloco'; useSelect = false; }
 
             if (useSelect) {
                 blockInput.classList.add('hidden'); blockSelect.classList.remove('hidden');
@@ -567,6 +590,37 @@
             updateGlobalState();
         }
 
+        function handleCropChange() {
+            const cropVal = document.getElementById('crop').value;
+            const blockLabel = document.getElementById('blockLabel');
+            const blockInput = document.getElementById('blockId');
+            const blockSelect = document.getElementById('blockSelect'); 
+            const varInput = document.getElementById('varietyInput');
+            const varSelect = document.getElementById('varietySelect');
+
+            let options = []; let useSelect = false;
+            if (cropVal === 'Pepino') { blockLabel.innerText = 'Setor'; useSelect = true; options = ['1', '2', '3', '4']; }
+            else if (cropVal === 'Brócolis' || cropVal === 'Couve-Flor') { 
+                blockLabel.innerText = 'Nº Bloco'; useSelect = true; 
+                for (let i = 1; i <= 19; i++) options.push(i.toString());
+                options.push('A', 'B', 'C', 'D', 'E');
+            } else { blockLabel.innerText = 'Nº Bloco'; useSelect = false; }
+
+            if (useSelect) {
+                blockInput.classList.add('hidden'); blockSelect.classList.remove('hidden');
+                blockSelect.innerHTML = '<option value="">Selecione...</option>';
+                options.forEach(opt => { const el = document.createElement('option'); el.value = opt; el.innerText = opt; blockSelect.appendChild(el); });
+            } else { blockInput.classList.remove('hidden'); blockSelect.classList.add('hidden'); }
+
+            let vOptions = cropVal === 'Brócolis' ? varietiesBroccoli : (cropVal === 'Couve-Flor' ? varietiesCauliflower : (cropVal === 'Pepino' ? varietiesCucumber : []));
+            if(vOptions.length > 0) {
+                varInput.classList.add('hidden'); varSelect.classList.remove('hidden');
+                varSelect.innerHTML = '<option value="">Selecione...</option>';
+                vOptions.forEach(v => { const el = document.createElement('option'); el.value = v; el.innerText = v; varSelect.appendChild(el); });
+                const other = document.createElement('option'); other.value = 'Outra'; other.innerText = 'Outra...'; varSelect.appendChild(other);
+            } else { varSelect.classList.add('hidden'); document.getElementById('variety-custom-div').classList.add('hidden'); varInput.classList.remove('hidden'); }
+        }
+
         function toggleOtherCropInput() {
             const select = document.getElementById('crop');
             if (select.value === 'Outros') { select.classList.add('hidden'); document.getElementById('crop-custom-div').classList.remove('hidden'); document.getElementById('otherCropInput').focus(); }
@@ -620,9 +674,9 @@
             document.getElementById('displayLossPercent').innerText = '-';
             editingIndex = -1;
             const btn = document.getElementById('submitBtn');
-            btn.innerHTML = '<i data-lucide="check" width="16" height="16"></i> <span class="text-xs sm:text-sm">Finalizar Bloco</span>';
+            btn.innerHTML = '<span class="text-xs sm:text-sm">Finalizar Bloco</span>';
             btn.className = "flex-1 bg-slate-800 hover:bg-slate-900 text-white font-bold py-3 rounded-xl transition-all flex justify-center items-center gap-2 shadow-lg active:scale-95";
-            document.getElementById('formTitle').innerHTML = '<i data-lucide="sprout" width="18" height="18" class="text-emerald-600"></i> Novo Plantio';
+            document.getElementById('formTitle').innerHTML = '<i data-lucide="sprout" class="text-emerald-600"></i> Novo Plantio';
             lucide.createIcons();
         }
 
@@ -745,7 +799,7 @@
             calculateLoss();
             
             const btn = document.getElementById('submitBtn');
-            btn.innerHTML = '<i data-lucide="save" width="16" height="16"></i> <span>Salvar</span>';
+            btn.innerHTML = '<span>Salvar</span>';
             btn.className = "flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl shadow-lg active:scale-95";
             document.getElementById('formTitle').innerHTML = '<i data-lucide="pencil" width="18" height="18" class="text-blue-600"></i> Editando';
             document.getElementById('formContainer').scrollIntoView({ behavior: 'smooth' });
