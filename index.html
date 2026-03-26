@@ -27,48 +27,6 @@
         
         .fade-in { animation: fadeIn 0.2s ease-in-out; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-
-        /* Estilos para o Relatório Técnico (PDF) - DOCUMENTO A4 */
-        #technical-report-template {
-            width: 794px;
-            min-height: 1123px;
-            background: white;
-            padding: 40px;
-            box-sizing: border-box;
-            position: absolute;
-            top: -9999px;
-            left: -9999px;
-            font-family: 'Helvetica', 'Arial', sans-serif;
-            color: #333;
-        }
-        .tech-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-            font-size: 11px;
-        }
-        .tech-table th {
-            background-color: #f0fdf4;
-            color: #166534;
-            font-weight: bold;
-            text-transform: uppercase;
-            padding: 8px;
-            border: 1px solid #bbf7d0;
-            text-align: left;
-        }
-        .tech-table td {
-            padding: 8px;
-            border: 1px solid #e2e8f0;
-            vertical-align: middle;
-        }
-        .tech-header {
-            border-bottom: 2px solid #166534;
-            padding-bottom: 20px;
-            margin-bottom: 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
     </style>
 </head>
 <body class="bg-slate-100 text-slate-800 min-h-screen pb-20 select-none">
@@ -83,17 +41,9 @@
             </div>
         </div>
         <div class="flex gap-2 w-full md:w-auto overflow-x-auto pb-1 md:pb-0">
-            <button id="btnZap" onclick="copyToWhatsApp()" class="flex-1 md:flex-none flex items-center justify-center gap-2 px-3 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg text-xs font-bold shadow-lg active:scale-95 transition-all whitespace-nowrap">
-                <i data-lucide="message-circle" class="w-4 h-4"></i>
-                <span>Zap</span>
-            </button>
-            <button onclick="downloadImage()" class="flex-1 md:flex-none flex items-center justify-center gap-2 px-3 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg text-xs font-bold shadow-lg active:scale-95 transition-all whitespace-nowrap">
-                <i data-lucide="image" class="w-4 h-4"></i>
-                <span>Imagem</span>
-            </button>
-            <button id="pdfBtn" type="button" onclick="downloadPDF()" class="flex-1 md:flex-none flex items-center justify-center gap-2 px-3 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-xs font-bold shadow-lg active:scale-95 transition-all whitespace-nowrap">
-                <i data-lucide="file-down" class="w-4 h-4"></i>
-                <span>Relatório Técnico</span>
+            <button onclick="downloadImage()" class="flex-1 md:flex-none flex items-center justify-center gap-2 px-3 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg text-xs font-bold shadow-lg active:scale-95 transition-all whitespace-nowrap">
+                <i data-lucide="share-2" class="w-4 h-4"></i>
+                <span>Enviar para o WhatsApp</span>
             </button>
         </div>
     </div>
@@ -293,50 +243,6 @@
             </div>
         </div>
     </div>
-
-    <!-- RELATÓRIO TÉCNICO PDF A4 -->
-    <div id="technical-report-template">
-        <div class="tech-header">
-            <div>
-                <h1 style="font-size: 24px; font-weight: bold; color: #1e293b; margin: 0;">RELATÓRIO DE TRANSPLANTIO</h1>
-                <p style="font-size: 14px; color: #64748b; margin: 5px 0 0 0;">Controle de Plantio • SPG</p>
-            </div>
-            <img src="https://i.imgur.com/f7UnnL0.png" style="height: 80px; width: auto;">
-        </div>
-        <div style="display: flex; justify-content: space-between; margin-bottom: 20px; font-size: 12px; border: 1px solid #e2e8f0; padding: 15px; background-color: #f8fafc;">
-            <div style="line-height: 1.8;">
-                <div><strong>Local:</strong> <span id="pdf-partner"></span></div>
-                <div><strong>Data:</strong> <span id="pdf-date"></span></div>
-            </div>
-            <div style="line-height: 1.8;">
-                <div><strong>Colaboradores:</strong> <span id="pdf-collaborators"></span></div>
-                <div><strong>Horário:</strong> <span id="pdf-time"></span></div>
-            </div>
-            <div style="line-height: 1.8; text-align: right;">
-                 <div><strong>TOTAL PLANTADO:</strong> <span id="pdf-total-planted"></span></div>
-            </div>
-        </div>
-        <h3 style="font-size: 14px; font-weight: bold; color: #166534; border-bottom: 1px solid #bbf7d0; padding-bottom: 5px; margin-bottom: 10px;">DETALHAMENTO</h3>
-        <table class="tech-table">
-            <thead>
-                <tr>
-                    <th style="width: 12%;">Bloco/Ciclo</th>
-                    <th style="width: 18%;">Cultura/Var</th>
-                    <th style="width: 8%;">Idade</th>
-                    <th style="width: 8%;">Band.</th>
-                    <th style="width: 12%;">Mudas</th>
-                    <th style="width: 12%;">Plantado</th>
-                    <th style="width: 12%;">Perdas</th>
-                    <th style="width: 10%;">% Perda</th>
-                </tr>
-            </thead>
-            <tbody id="pdf-table-body"></tbody>
-        </table>
-        <div style="margin-top: 60px; display: flex; justify-content: space-between;">
-            <div style="width: 40%; border-top: 1px solid #333; text-align: center; font-size: 11px; padding-top: 5px;">Responsável Técnico</div>
-            <div style="width: 40%; border-top: 1px solid #333; text-align: center; font-size: 11px; padding-top: 5px;">Responsável Plantio</div>
-        </div>
-    </div>
     
     <!-- MODAIS -->
     <div id="clearAllModal" class="fixed inset-0 bg-black/50 z-50 hidden flex justify-center items-center backdrop-blur-sm transition-opacity duration-300">
@@ -408,7 +314,7 @@
                 if (globalInfo.date) {
                     const parts = globalInfo.date.split('-');
                     const dObj = new Date(parts[0], parts[1] - 1, parts[2]);
-                    dateEl.innerText = `Data: ${parts[2]}/${parts[1]}/${parts[0]} - Semana ${getWeekNumber(dObj)}`;
+                    dateEl.innerText = `Data: ${parts[2]}/${parts[1]}/${parts[0]} - SE ${getWeekNumber(dObj)}`;
                 } else dateEl.innerText = "Data:";
             }
             
@@ -463,10 +369,36 @@
             if (data.length === 0) { list.innerHTML = '<li class="text-center py-2 text-xs">Sem registros.</li>'; return; }
             data.forEach((item) => {
                 const gIdx = appData.indexOf(item);
-                const active = (gIdx === editingIndex) ? 'border-blue-400 bg-blue-50' : 'border-slate-100 bg-slate-50';
-                list.innerHTML += `<li class="flex justify-between items-center p-2 rounded border ${active} transition-all"><div class="flex flex-col"><span class="text-[10px] font-bold uppercase">B${item.block} • ${item.crop}</span><span class="font-bold text-slate-700">${item.variety || '-'} • ${item.planted.toLocaleString('pt-BR')} un</span></div><div class="flex items-center"><button onclick="editItem(${gIdx})" class="text-blue-500 mr-2"><i data-lucide="pencil" width="14" height="14"></i></button><button onclick="removeItem(${gIdx})" class="text-red-500"><i data-lucide="trash-2" width="14" height="14"></i></button></div></li>`;
+                const isActiveClass = (gIdx === editingIndex) ? 'border-blue-400 bg-blue-50 ring-1' : (item.active === false ? 'border-slate-200 bg-slate-100' : 'border-slate-100 bg-slate-50');
+                const inactiveStyle = item.active === false ? 'opacity-60 grayscale-[0.5]' : '';
+                const textStyle = item.active === false ? 'line-through text-slate-400' : '';
+                const activeTag = item.active === false ? '<span class="text-[10px] text-red-400 font-bold ml-1">(Oculto)</span>' : '';
+                
+                list.innerHTML += `
+                <li class="flex justify-between items-center p-2 rounded border ${isActiveClass} ${inactiveStyle} transition-all">
+                    <div class="flex flex-col">
+                        <span class="text-[10px] font-bold uppercase ${textStyle}">B${item.block} • ${item.crop} ${activeTag}</span>
+                        <span class="font-bold text-slate-700 ${textStyle}">${item.variety || '-'} • ${item.planted.toLocaleString('pt-BR')} un</span>
+                    </div>
+                    <div class="flex items-center">
+                        <button onclick="toggleItemActive(${gIdx})" class="${item.active === false ? 'text-slate-400 hover:bg-slate-200' : 'text-emerald-500 hover:bg-emerald-100'} p-1.5 rounded-md mr-1 transition-colors" title="${item.active === false ? 'Mostrar' : 'Ocultar'}">
+                            <i data-lucide="${item.active === false ? 'eye-off' : 'eye'}" width="14" height="14"></i>
+                        </button>
+                        <button onclick="editItem(${gIdx})" class="text-blue-500 mr-1 p-1.5 hover:bg-blue-100 rounded-md transition-colors"><i data-lucide="pencil" width="14" height="14"></i></button>
+                        <button onclick="removeItem(${gIdx})" class="text-red-500 p-1.5 hover:bg-red-100 rounded-md transition-colors"><i data-lucide="trash-2" width="14" height="14"></i></button>
+                    </div>
+                </li>`;
             });
             lucide.createIcons();
+        }
+
+        function toggleItemActive(index) {
+            if (appData[index]) {
+                appData[index].active = appData[index].active === false ? true : false;
+                saveToStorage();
+                renderReport();
+                renderList();
+            }
         }
 
         function renderReport() {
@@ -475,10 +407,14 @@
             if(!container || !footer) return;
             container.innerHTML = '';
             let tPGlobal = 0, tLGlobal = 0, tSGlobal = 0;
-            const data = getFilteredData();
+            const allData = getFilteredData();
+            const data = allData.filter(item => item.active !== false);
 
-            if (data.length === 0) container.innerHTML = `<div class="p-8 text-center text-slate-400 text-xs italic h-full flex items-center justify-center"><span>Lance o plantio no formulário.</span></div>`;
-            else {
+            if (allData.length > 0 && data.length === 0) {
+                container.innerHTML = `<div class="p-8 text-center text-slate-400 text-xs italic h-full flex items-center justify-center flex-col"><i data-lucide="eye-off" class="mb-2 w-8 h-8 opacity-20"></i><span>Todos os plantios estão ocultos.</span></div>`;
+            } else if (data.length === 0) {
+                container.innerHTML = `<div class="p-8 text-center text-slate-400 text-xs italic h-full flex items-center justify-center"><span>Lance o plantio no formulário.</span></div>`;
+            } else {
                 const grouped = {};
                 data.forEach(item => { const k = `${item.block}-${item.cycle || ''}`; if(!grouped[k]) grouped[k] = []; grouped[k].push(item); });
                 Object.keys(grouped).sort().forEach(key => {
@@ -709,7 +645,8 @@
                 age: document.getElementById('plantAge').value, trays: document.getElementById('trays').value,
                 seedlings: mudas, planted: plantado, losses: mudas - plantado,
                 lossPercent: mudas > 0 ? (((mudas - plantado) / mudas) * 100).toFixed(0) : 0,
-                notes: document.getElementById('notes').value
+                notes: document.getElementById('notes').value,
+                active: editingIndex >= 0 && appData[editingIndex].active !== undefined ? appData[editingIndex].active : true
             };
 
             if (editingIndex >= 0) { appData[editingIndex] = newItem; editingIndex = -1; clearBlockForm(false); } 
@@ -746,7 +683,8 @@
                 age: document.getElementById('plantAge').value, trays: document.getElementById('trays').value,
                 seedlings: mudas, planted: plantado, losses: mudas - plantado,
                 lossPercent: mudas > 0 ? (((mudas - plantado) / mudas) * 100).toFixed(0) : 0,
-                notes: document.getElementById('notes').value
+                notes: document.getElementById('notes').value,
+                active: true
             };
 
             appData.push(newItem);
@@ -824,56 +762,77 @@
 
         // --- EXPORTAÇÃO ---
 
-        function copyToWhatsApp() {
-            const data = getFilteredData(); if (data.length === 0) return;
-            let text = `Resumo do Plantio – ${new Date().toLocaleDateString('pt-BR')}\n\n`;
-            const grouped = {};
-            data.forEach(i => { const k = `${i.block}-${i.cycle || ''}`; if(!grouped[k]) grouped[k]=[]; grouped[k].push(i); });
-            Object.keys(grouped).sort().forEach(k => {
-                const items = grouped[k];
-                text += `✅ *Bloco ${items[0].block}${items[0].cycle ? ' Ciclo '+items[0].cycle : ''}*\n`;
-                items.forEach(i => { text += `- ${i.crop} (${i.variety || '-'}): ${i.planted.toLocaleString('pt-BR')} un (${i.lossPercent}% perda)\n`; });
-                text += `\n`;
-            });
-            const tA = document.createElement("textarea"); tA.value = text; document.body.appendChild(tA); tA.select();
-            document.execCommand('copy'); showMessageModal('Sucesso!', 'Zap copiado!', 'success');
-            document.body.removeChild(tA);
-        }
-
         async function downloadImage() {
             const el = document.getElementById('report-card');
-            const canvas = await html2canvas(el, {
-                scale: 5, useCORS: true, allowTaint: true, scrollY: -window.scrollY, backgroundColor: '#ffffff', windowWidth: 480,
-                onclone: (doc) => {
-                    const cEl = doc.getElementById('report-card');
-                    if (cEl) { cEl.style.width = '450px'; cEl.style.maxWidth = '450px'; cEl.style.margin = '0'; cEl.style.boxShadow = 'none'; cEl.style.borderRadius = '0'; cEl.style.border = 'none'; }
-                }
-            });
-            const link = document.createElement('a'); link.href = canvas.toDataURL('image/png');
-            link.download = `Resumo_Plantio_${new Date().toISOString().slice(0,10)}.png`; link.click();
-        }
+            
+            // Feedback visual no botão
+            const btnSpan = document.querySelector('button[onclick="downloadImage()"] span');
+            const originalText = btnSpan ? btnSpan.innerText : 'Enviar para o WhatsApp';
+            if (btnSpan) btnSpan.innerText = "Gerando...";
 
-        async function downloadPDF() {
-            const data = getFilteredData();
-            if (data.length === 0) return;
-            document.getElementById('pdf-partner').innerText = globalInfo.partner || '-';
-            let dStr = globalInfo.date ? globalInfo.date.split('-').reverse().join('/') + " - Semana " + getWeekNumber(new Date(globalInfo.date)) : '-';
-            document.getElementById('pdf-date').innerText = dStr;
-            document.getElementById('pdf-collaborators').innerText = globalInfo.collaborators || '-';
-            document.getElementById('pdf-time').innerText = globalInfo.duration ? `${globalInfo.startTime} às ${globalInfo.endTime} (${globalInfo.duration})` : '-';
-            const tbody = document.getElementById('pdf-table-body');
-            tbody.innerHTML = ''; let totalP = 0;
-            data.sort((a,b)=> a.block.localeCompare(b.block, undefined, {numeric:true})).forEach(item => {
-                totalP += item.planted;
-                tbody.innerHTML += `<tr><td>${item.block}${item.cycle ? ' / '+item.cycle : ''}</td><td>${item.crop}<br><small>${item.variety || ''}</small></td><td>${item.age || '-'}</td><td>${item.trays || '-'}</td><td>${item.seedlings.toLocaleString('pt-BR')}</td><td>${item.planted.toLocaleString('pt-BR')}</td><td>${item.losses.toLocaleString('pt-BR')}</td><td>${item.lossPercent}%</td></tr>`;
-            });
-            document.getElementById('pdf-total-planted').innerText = totalP.toLocaleString('pt-BR');
-            const btn = document.querySelector('#pdfBtn span'); const original = btn.innerText; btn.innerText = "Gerando...";
-            const canvas = await html2canvas(document.getElementById('technical-report-template'), { scale: 2, useCORS: true, backgroundColor: '#ffffff', windowWidth: 794 });
-            const pdf = new jspdf.jsPDF('p', 'mm', 'a4');
-            pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, 210, (canvas.height * 210) / canvas.width);
-            pdf.save(`Relatorio_Tecnico_${new Date().toISOString().slice(0,10)}.pdf`);
-            btn.innerText = original;
+            try {
+                const canvas = await html2canvas(el, {
+                    scale: 5, useCORS: true, allowTaint: true, scrollY: -window.scrollY, backgroundColor: '#ffffff', windowWidth: 480,
+                    onclone: (doc) => {
+                        const cEl = doc.getElementById('report-card');
+                        if (cEl) { cEl.style.width = '450px'; cEl.style.maxWidth = '450px'; cEl.style.margin = '0'; cEl.style.boxShadow = 'none'; cEl.style.borderRadius = '0'; cEl.style.border = 'none'; }
+                    }
+                });
+                
+                // --- PREPARAÇÃO DOS DADOS PARA O TEXTO ---
+                let dateObj = new Date();
+                if (globalInfo.date) {
+                    const parts = globalInfo.date.split('-');
+                    dateObj = new Date(parts[0], parts[1] - 1, parts[2]);
+                }
+                const dayStr = dateObj.toLocaleDateString('pt-BR');
+                const weekNum = getWeekNumber(dateObj);
+                
+                // Calcula o Total Plantado (apenas itens não ocultos)
+                const activeData = getFilteredData().filter(item => item.active !== false);
+                const totalPlanted = activeData.reduce((sum, item) => sum + item.planted, 0);
+                
+                // Texto automático formatado sem emojis
+                const shareText = `\`Relatório do Transplantio\`\n\n*Data:* ${dayStr} - SE ${weekNum}\n*Total Plantado:* ${totalPlanted.toLocaleString('pt-BR')} mudas`;
+                const filename = `Resumo_Plantio_${new Date().toISOString().slice(0,10)}.png`;
+
+                // --- COMPARTILHAMENTO (MOBILE NATIVO OU FALLBACK DESKTOP) ---
+                canvas.toBlob(async (blob) => {
+                    const file = new File([blob], filename, { type: 'image/png' });
+                    
+                    if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+                        // Abre a janela nativa de compartilhamento do celular
+                        try {
+                            await navigator.share({
+                                files: [file],
+                                title: filename,
+                                text: shareText
+                            });
+                        } catch (error) {
+                            console.log('Compartilhamento cancelado pelo usuário.', error);
+                        }
+                    } else {
+                        // Fallback para Desktop: Baixa a imagem e abre o WhatsApp Web
+                        const link = document.createElement('a');
+                        link.href = canvas.toDataURL('image/png');
+                        link.download = filename;
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                        
+                        setTimeout(() => {
+                            window.open(`https://web.whatsapp.com/send?text=${encodeURIComponent(shareText)}`, '_blank');
+                        }, 1500);
+                    }
+                }, 'image/png');
+
+            } catch (err) {
+                console.error("Erro ao gerar imagem:", err);
+                showMessageModal('Erro', 'Falha ao gerar e compartilhar imagem.', 'error');
+            } finally {
+                // Restaura o texto do botão
+                if (btnSpan) btnSpan.innerText = originalText;
+            }
         }
 
         window.onload = () => {
