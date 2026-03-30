@@ -41,7 +41,8 @@
             </div>
         </div>
         <div class="flex gap-2 w-full md:w-auto overflow-x-auto pb-1 md:pb-0">
-            <button onclick="downloadImage()" class="flex-1 md:flex-none flex items-center justify-center gap-2 px-3 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg text-xs font-bold shadow-lg active:scale-95 transition-all whitespace-nowrap">
+            <!-- Botão Único que inicia o fluxo de confirmação e envio -->
+            <button onclick="confirmBeforeSend()" class="flex-1 md:flex-none flex items-center justify-center gap-2 px-3 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg text-xs font-bold shadow-lg active:scale-95 transition-all whitespace-nowrap">
                 <i data-lucide="share-2" class="w-4 h-4"></i>
                 <span>Enviar para o WhatsApp</span>
             </button>
@@ -264,16 +265,39 @@
         </div>
     </div>
 
+    <!-- Modal de Confirmação de Envio (IDÊNTICO AO CHECKLIST E À IMAGEM) -->
+    <div id="confirmSendModal" class="fixed inset-0 bg-black/50 z-50 hidden flex justify-center items-center backdrop-blur-sm transition-opacity duration-300">
+        <div class="bg-white rounded-2xl shadow-2xl p-6 w-11/12 max-w-sm flex flex-col items-center">
+            <div class="h-12 w-12 bg-[#f4f7f6] rounded-full flex items-center justify-center text-[#5c7a6b] mb-4 border border-[#e5ece9]">
+                <i data-lucide="help-circle" class="w-6 h-6"></i>
+            </div>
+            
+            <h3 class="text-xl font-bold text-slate-800 text-center mb-3">Conferiu os dados?</h3>
+            <p class="text-[13px] text-slate-500 text-center mb-5 leading-relaxed font-medium">Você conferiu todas as informações? Se sim, toque para enviar.</p>
+            
+            <p class="text-[13px] text-[#db7a26] font-bold text-center mb-6 leading-relaxed">Caso tenha enviado alguma informação errada, informe ao responsável para que ele possa alterar na planilha.</p>
+            
+            <div class="flex gap-3 w-full">
+                <button onclick="hideConfirmSendModal()" id="btnCancelSend" class="flex-1 px-4 py-3.5 bg-[#f4f6f8] hover:bg-slate-200 text-[#3b4b5c] rounded-xl text-xs font-black tracking-wide transition-colors">CANCELAR</button>
+                <button onclick="executeSend()" id="btnConfirmSend" class="flex-1 px-4 py-3.5 bg-[#5e7d6b] hover:bg-[#4d6b59] text-white rounded-xl text-xs font-black tracking-wide transition-colors">ENVIAR AGORA</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         const varietiesCauliflower = ["26972 RZ", "Alcala", "Champagne Snow", "Copacabana", "Ponto Perde", "Serena", "SF-1758", "Supremo", "Tirsuli", "Vereda", "Vereda F1", "Vigor F1"];
         const varietiesBroccoli = ["Bragantino F1", "BRO 68 Syngenta", "Claramont", "Master TSV", "PHAR LAP", "Sakata Jiraya F1"];
         const varietiesCucumber = ["AGX40404", "Aikido", "Tikara", "Tsuyataro"];
+
+        // URL do Google Apps Script
+        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwWGlfNLDl7NNHZTprgMtdA5Xkm_9NHBir-JBrRT89wjJHZo_H_35DLCVJs46A5UyAw/exec";
 
         // Carregar do Local Storage
         let appData = JSON.parse(localStorage.getItem('spg_transplantio_data')) || [];
         let globalInfo = JSON.parse(localStorage.getItem('spg_transplantio_global')) || { partner: '', date: '', collaborators: '', startTime: '', endTime: '', duration: '' };
         let editingIndex = -1;
         let isManualMudas = false;
+        let isProcessingShare = false;
 
         // --- FUNÇÕES GERAIS ---
 
@@ -760,17 +784,40 @@
         }
         function hideMessageModal() { document.getElementById('messageModal').classList.add('hidden'); }
 
-        // --- EXPORTAÇÃO ---
+        // --- FLUXO DE COMPARTILHAMENTO E PLANILHA ---
 
-        async function downloadImage() {
+        function confirmBeforeSend() {
+            const activeData = getFilteredData().filter(item => item.active !== false);
+            if (activeData.length === 0) {
+                showMessageModal('Aviso', 'Não há registros ativos para enviar neste local.', 'error');
+                return;
+            }
+            document.getElementById('confirmSendModal').classList.remove('hidden');
+            lucide.createIcons();
+        }
+
+        function hideConfirmSendModal() {
+            document.getElementById('confirmSendModal').classList.add('hidden');
+        }
+
+        function executeSend() {
+            hideConfirmSendModal();
+            downloadAndShare(); // Chama a função unificada
+        }
+
+        async function downloadAndShare() {
+            if (isProcessingShare) return;
+            isProcessingShare = true;
+
             const el = document.getElementById('report-card');
             
-            // Feedback visual no botão
-            const btnSpan = document.querySelector('button[onclick="downloadImage()"] span');
+            // Pega o botão do navbar
+            const btnSpan = document.querySelector('button[onclick="confirmBeforeSend()"] span');
             const originalText = btnSpan ? btnSpan.innerText : 'Enviar para o WhatsApp';
-            if (btnSpan) btnSpan.innerText = "Gerando...";
+            if (btnSpan) btnSpan.innerText = "Processando...";
 
             try {
+                // 1. Gera a imagem do Canvas primeiro
                 const canvas = await html2canvas(el, {
                     scale: 5, useCORS: true, allowTaint: true, scrollY: -window.scrollY, backgroundColor: '#ffffff', windowWidth: 480,
                     onclone: (doc) => {
@@ -779,7 +826,7 @@
                     }
                 });
                 
-                // --- PREPARAÇÃO DOS DADOS PARA O TEXTO ---
+                // 2. Prepara os Textos para o WhatsApp
                 let dateObj = new Date();
                 if (globalInfo.date) {
                     const parts = globalInfo.date.split('-');
@@ -788,20 +835,24 @@
                 const dayStr = dateObj.toLocaleDateString('pt-BR');
                 const weekNum = getWeekNumber(dateObj);
                 
-                // Calcula o Total Plantado (apenas itens não ocultos)
                 const activeData = getFilteredData().filter(item => item.active !== false);
                 const totalPlanted = activeData.reduce((sum, item) => sum + item.planted, 0);
                 
-                // Texto automático formatado sem emojis
                 const shareText = `\`Relatório do Transplantio\`\n\n*Data:* ${dayStr} - SE ${weekNum}\n*Total Plantado:* ${totalPlanted.toLocaleString('pt-BR')} mudas`;
                 const filename = `Resumo_Plantio_${new Date().toISOString().slice(0,10)}.png`;
 
-                // --- COMPARTILHAMENTO (MOBILE NATIVO OU FALLBACK DESKTOP) ---
+                // 3. Envia os dados para o Google Sheets EM SEGUNDO PLANO
+                const payload = {
+                    globalInfo: globalInfo,
+                    items: activeData
+                };
+                sendDataToGoogleSheets(payload); // Dispara a função mas não trava a tela aguardando
+
+                // 4. Compartilha via WhatsApp Native ou Desktop
                 canvas.toBlob(async (blob) => {
                     const file = new File([blob], filename, { type: 'image/png' });
                     
                     if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
-                        // Abre a janela nativa de compartilhamento do celular
                         try {
                             await navigator.share({
                                 files: [file],
@@ -812,7 +863,6 @@
                             console.log('Compartilhamento cancelado pelo usuário.', error);
                         }
                     } else {
-                        // Fallback para Desktop: Baixa a imagem e abre o WhatsApp Web
                         const link = document.createElement('a');
                         link.href = canvas.toDataURL('image/png');
                         link.download = filename;
@@ -827,11 +877,25 @@
                 }, 'image/png');
 
             } catch (err) {
-                console.error("Erro ao gerar imagem:", err);
-                showMessageModal('Erro', 'Falha ao gerar e compartilhar imagem.', 'error');
+                console.error("Erro ao processar:", err);
+                showMessageModal('Erro', 'Falha ao processar os dados e compartilhar a imagem.', 'error');
             } finally {
-                // Restaura o texto do botão
                 if (btnSpan) btnSpan.innerText = originalText;
+                isProcessingShare = false;
+            }
+        }
+
+        async function sendDataToGoogleSheets(payload) {
+            try {
+                await fetch(GOOGLE_SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify(payload)
+                });
+                console.log("Dados enviados para a planilha com sucesso!");
+            } catch (err) {
+                console.error("Erro ao enviar para a planilha:", err);
             }
         }
 
