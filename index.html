@@ -216,10 +216,10 @@
 
         <!-- PREVIEW VISUAL -->
         <div class="w-full lg:w-3/5 flex flex-col bg-slate-200/50 p-4 rounded-3xl border border-slate-300/50 min-h-[calc(100vh-6rem)]">
-            <div id="report-card" class="w-full flex-1 flex flex-col bg-white shadow-2xl overflow-hidden border border-slate-100 relative">
+            <div id="report-card" class="w-full flex-1 flex flex-col bg-white shadow-2xl overflow-hidden border border-slate-100 relative" style="text-rendering: optimizeLegibility; -webkit-font-smoothing: antialiased;">
                 
                 <div class="bg-gradient-to-br from-teal-600 to-teal-800 p-6 text-white relative overflow-hidden flex flex-col justify-start shrink-0 gap-3 antialiased">
-                    <img src="https://i.imgur.com/f7UnnL0.png" alt="Logo SPG" class="absolute top-4 right-4 w-24 h-24 z-0">
+                    <img src="https://i.imgur.com/f7UnnL0.png" alt="Logo SPG" class="absolute top-4 right-4 w-24 h-24 z-0" style="image-rendering: -webkit-optimize-contrast;">
                     <div class="relative z-10 w-full pr-24"> 
                         <h2 id="reportTitle" class="text-sm font-bold leading-snug tracking-normal"></h2>
                         <div class="mt-3 pt-3 border-t border-white/20">
@@ -817,12 +817,33 @@
             if (btnSpan) btnSpan.innerText = "Processando...";
 
             try {
+                // Pré-carregamento de imagens para acelerar a renderização e evitar falhas
+                const images = el.querySelectorAll('img');
+                await Promise.all(Array.from(images).map(img => { 
+                    if (img.complete) return Promise.resolve(); 
+                    return new Promise(resolve => { img.onload = resolve; img.onerror = resolve; }); 
+                }));
+
                 // 1. Gera a imagem do Canvas primeiro
                 const canvas = await html2canvas(el, {
-                    scale: 5, useCORS: true, allowTaint: true, scrollY: -window.scrollY, backgroundColor: '#ffffff', windowWidth: 480,
+                    scale: 5, useCORS: true, allowTaint: true, scrollY: -window.scrollY, backgroundColor: '#ffffff',
                     onclone: (doc) => {
                         const cEl = doc.getElementById('report-card');
-                        if (cEl) { cEl.style.width = '450px'; cEl.style.maxWidth = '450px'; cEl.style.margin = '0'; cEl.style.boxShadow = 'none'; cEl.style.borderRadius = '0'; cEl.style.border = 'none'; }
+                        const content = doc.getElementById('reportContent');
+                        
+                        if (cEl) { 
+                            cEl.style.width = '450px'; 
+                            cEl.style.maxWidth = '450px'; 
+                            cEl.style.margin = '0'; 
+                            cEl.style.boxShadow = 'none'; 
+                            cEl.style.borderRadius = '0'; 
+                            cEl.style.border = 'none'; 
+                        }
+                        if (content) { 
+                            content.style.height = 'auto'; 
+                            content.style.overflow = 'visible'; 
+                            content.style.maxHeight = 'none';
+                        }
                     }
                 });
                 
