@@ -62,7 +62,7 @@
                 <div class="grid grid-cols-2 gap-3 mb-5">
                     <div class="relative">
                         <label class="text-[10px] font-bold text-emerald-600 uppercase mb-1 block">Local <span class="text-red-500">*</span></label>
-                        <select id="partner" required onchange="clearError('partner'); updateGlobalState()" class="w-full p-2 border border-emerald-200 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none text-sm bg-white">
+                        <select id="partner" required onchange="clearError('partner'); handlePartnerChange(); updateGlobalState()" class="w-full p-2 border border-emerald-200 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none text-sm bg-white">
                             <option value="">Selecione...</option>
                             <option value="SPG Oásis">SPG Oásis</option>
                             <option value="SPG Sede">SPG Sede</option>
@@ -134,7 +134,11 @@
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-3 gap-3">
+                    <div id="blockGrid" class="grid grid-cols-3 gap-3 transition-all">
+                         <div id="estufaContainer" class="relative hidden fade-in">
+                            <label class="text-[10px] font-bold text-slate-500 uppercase mb-1 block">Estufa</label>
+                            <input type="text" id="estufaInput" placeholder="Ex: 01" oninput="updateGlobalState()" class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none text-sm bg-white text-center">
+                        </div>
                          <div class="relative">
                             <label id="blockLabel" class="text-[10px] font-bold text-slate-500 uppercase mb-1 block">Nº Bloco</label>
                             <!-- Input Texto -->
@@ -287,14 +291,15 @@
     <script>
         const varietiesCauliflower = ["26972 RZ", "Alcala", "Champagne Snow", "Copacabana", "Ponto Perde", "Serena", "SF-1758", "Supremo", "Tirsuli", "Vereda", "Vereda F1", "Vigor F1"];
         const varietiesBroccoli = ["Bragantino F1", "BRO 68 Syngenta", "Claramont", "Master TSV", "PHAR LAP", "Sakata Jiraya F1"];
-        const varietiesCucumber = ["AGX40404", "Aikido", "Tikara", "Tsuyataro"];
+        const varietiesCucumber = ["AGX40404", "Aikido", "Soldier", "Tikara", "Tsuyataro"];
 
-        // URL do Google Apps Script
-        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwWGlfNLDl7NNHZTprgMtdA5Xkm_9NHBir-JBrRT89wjJHZo_H_35DLCVJs46A5UyAw/exec";
+        // URLs do Google Apps Script
+        const GOOGLE_SCRIPT_URL_OASIS = "https://script.google.com/macros/s/AKfycbwWGlfNLDl7NNHZTprgMtdA5Xkm_9NHBir-JBrRT89wjJHZo_H_35DLCVJs46A5UyAw/exec";
+        const GOOGLE_SCRIPT_URL_SEDE = "https://script.google.com/macros/s/AKfycbzOsJFQ7YEqpJk2HH2OazcSVoWfNYzwOJty66dbJeKABuUrcT5xXOnnxbpn65rHjax4Ig/exec";
 
         // Carregar do Local Storage
         let appData = JSON.parse(localStorage.getItem('spg_transplantio_data')) || [];
-        let globalInfo = JSON.parse(localStorage.getItem('spg_transplantio_global')) || { partner: '', date: '', collaborators: '', startTime: '', endTime: '', duration: '' };
+        let globalInfo = JSON.parse(localStorage.getItem('spg_transplantio_global')) || { partner: '', estufa: '', date: '', collaborators: '', startTime: '', endTime: '', duration: '' };
         let editingIndex = -1;
         let isManualMudas = false;
         let isProcessingShare = false;
@@ -328,11 +333,35 @@
 
         function clearError(id) { toggleError(id, false); }
 
+        function handlePartnerChange() {
+            const partner = document.getElementById('partner').value;
+            const estufaContainer = document.getElementById('estufaContainer');
+            const estufaInput = document.getElementById('estufaInput');
+            const blockGrid = document.getElementById('blockGrid');
+            if (partner === 'SPG Sede') {
+                estufaContainer.classList.remove('hidden');
+                if (blockGrid) {
+                    blockGrid.classList.remove('grid-cols-3');
+                    blockGrid.classList.add('grid-cols-4');
+                }
+            } else {
+                estufaContainer.classList.add('hidden');
+                if (blockGrid) {
+                    blockGrid.classList.remove('grid-cols-4');
+                    blockGrid.classList.add('grid-cols-3');
+                }
+                estufaInput.value = '';
+                globalInfo.estufa = '';
+            }
+        }
+
         // --- RENDERIZAÇÃO ---
 
         function updateDynamicTitle() {
             const partner = globalInfo.partner || 'Local';
-            document.getElementById('reportTitle').innerHTML = `Resumo de Transplantio<br>${partner}`;
+            const estufaStr = (globalInfo.partner === 'SPG Sede' && globalInfo.estufa) ? ` - ${globalInfo.estufa}` : '';
+            document.getElementById('reportTitle').innerHTML = `Resumo de Transplantio<br>${partner}${estufaStr}`;
+            
             const dateEl = document.getElementById('headerDateTime');
             if (dateEl) {
                 if (globalInfo.date) {
@@ -352,37 +381,6 @@
                     <div class="flex flex-col"><span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">Operacional</span><span class="text-sm font-bold text-slate-700">Colaboradores: ${collab}</span></div>
                     <div class="flex flex-col items-end"><span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">Horário de Plantio</span><span class="text-sm font-bold text-slate-700">${sTime} - ${eTime} <span class="text-slate-400 font-normal text-xs ml-1">${durStr}</span></span></div>`;
             }
-        }
-
-        function handleCropChange() {
-            const cropVal = document.getElementById('crop').value;
-            const blockLabel = document.getElementById('blockLabel');
-            const blockInput = document.getElementById('blockId');
-            const blockSelect = document.getElementById('blockSelect'); 
-            const varInput = document.getElementById('varietyInput');
-            const varSelect = document.getElementById('varietySelect');
-
-            let options = []; let useSelect = false;
-            if (cropVal === 'Pepino') { blockLabel.innerText = 'Setor'; useSelect = true; options = ['1', '2', '3', '4']; }
-            else if (cropVal === 'Brócolis' || cropVal === 'Couve-Flor') { 
-                blockLabel.innerText = 'Nº Bloco'; useSelect = true; 
-                for (let i = 1; i <= 19; i++) options.push(i.toString());
-                options.push('A', 'B', 'C', 'D', 'E');
-            } else { blockLabel.innerText = 'Bloco'; useSelect = false; }
-
-            if (useSelect) {
-                blockInput.classList.add('hidden'); blockSelect.classList.remove('hidden');
-                blockSelect.innerHTML = '<option value="">Selecione...</option>';
-                options.forEach(opt => { const el = document.createElement('option'); el.value = opt; el.innerText = opt; blockSelect.appendChild(el); });
-            } else { blockInput.classList.remove('hidden'); blockSelect.classList.add('hidden'); }
-
-            let vOptions = cropVal === 'Brócolis' ? varietiesBroccoli : (cropVal === 'Couve-Flor' ? varietiesCauliflower : (cropVal === 'Pepino' ? varietiesCucumber : []));
-            if(vOptions.length > 0) {
-                varInput.classList.add('hidden'); varSelect.classList.remove('hidden');
-                varSelect.innerHTML = '<option value="">Selecione...</option>';
-                vOptions.forEach(v => { const el = document.createElement('option'); el.value = v; el.innerText = v; varSelect.appendChild(el); });
-                const other = document.createElement('option'); other.value = 'Outra'; other.innerText = 'Outra...'; varSelect.appendChild(other);
-            } else { varSelect.classList.add('hidden'); document.getElementById('variety-custom-div').classList.add('hidden'); varInput.classList.remove('hidden'); }
         }
 
         function renderList() {
@@ -469,6 +467,7 @@
 
         function updateGlobalState() {
             globalInfo.partner = document.getElementById('partner').value;
+            globalInfo.estufa = document.getElementById('estufaInput') ? document.getElementById('estufaInput').value : '';
             globalInfo.date = document.getElementById('appDate').value;
             globalInfo.collaborators = document.getElementById('collaborators').value;
             globalInfo.startTime = document.getElementById('startTime').value;
@@ -612,12 +611,14 @@
 
         function clearBlockForm(clearAll = false) {
             if (clearAll) {
-                globalInfo = { partner: '', date: '', collaborators: '', startTime: '', endTime: '', duration: '' };
+                globalInfo = { partner: '', estufa: '', date: '', collaborators: '', startTime: '', endTime: '', duration: '' };
                 document.getElementById('partner').selectedIndex = 0;
+                if(document.getElementById('estufaInput')) document.getElementById('estufaInput').value = '';
                 document.getElementById('appDate').value = '';
                 document.getElementById('startTime').value = '';
                 document.getElementById('endTime').value = '';
                 document.getElementById('collaborators').value = '';
+                handlePartnerChange();
                 saveToStorage();
                 updateDynamicTitle();
             }
@@ -732,6 +733,7 @@
             document.getElementById('partner').value = item.partner;
             globalInfo.partner = item.partner;
             globalInfo.date = item.date;
+            handlePartnerChange();
             updateDynamicTitle();
             
             const hasCrop = Array.from(document.getElementById('crop').options).some(o => o.value === item.crop);
@@ -859,7 +861,10 @@
                 const activeData = getFilteredData().filter(item => item.active !== false);
                 const totalPlanted = activeData.reduce((sum, item) => sum + item.planted, 0);
                 
-                const shareText = `\`Relatório do Transplantio\`\n\n*Data:* ${dayStr} - SE ${weekNum}\n*Total Plantado:* ${totalPlanted.toLocaleString('pt-BR')} mudas`;
+                const partnerName = globalInfo.partner || '';
+                const estufaName = (globalInfo.partner === 'SPG Sede' && globalInfo.estufa) ? ` - ${globalInfo.estufa}` : '';
+                
+                const shareText = `\`Relatório do Transplantio\`\n\n*Local:* ${partnerName}${estufaName}\n*Data:* ${dayStr} - SE ${weekNum}\n*Total Plantado:* ${totalPlanted.toLocaleString('pt-BR')} mudas`;
                 const filename = `Resumo_Plantio_${new Date().toISOString().slice(0,10)}.png`;
 
                 // 3. Envia os dados para o Google Sheets EM SEGUNDO PLANO
@@ -908,7 +913,16 @@
 
         async function sendDataToGoogleSheets(payload) {
             try {
-                await fetch(GOOGLE_SCRIPT_URL, {
+                // Define para qual planilha enviar com base no Local selecionado
+                const partner = payload.globalInfo.partner;
+                const scriptUrl = partner === 'SPG Sede' ? GOOGLE_SCRIPT_URL_SEDE : GOOGLE_SCRIPT_URL_OASIS;
+
+                if (scriptUrl === 'COLOQUE_AQUI_A_URL_DO_NOVO_SCRIPT_DA_SEDE') {
+                    console.warn("Atenção: A URL do script da SPG Sede ainda não foi configurada.");
+                    return;
+                }
+
+                await fetch(scriptUrl, {
                     method: 'POST',
                     mode: 'no-cors',
                     headers: { 'Content-Type': 'text/plain;charset=utf-8' },
@@ -923,12 +937,16 @@
         window.onload = () => {
             if(globalInfo.partner) {
                 document.getElementById('partner').value = globalInfo.partner;
+                if(document.getElementById('estufaInput') && globalInfo.estufa) {
+                    document.getElementById('estufaInput').value = globalInfo.estufa;
+                }
                 document.getElementById('appDate').value = globalInfo.date;
                 document.getElementById('collaborators').value = globalInfo.collaborators;
                 document.getElementById('startTime').value = globalInfo.startTime;
                 document.getElementById('endTime').value = globalInfo.endTime;
                 document.getElementById('totalDuration').value = globalInfo.duration;
             }
+            handlePartnerChange();
             handleCropChange();
             updateDynamicTitle(); renderList(); renderReport();
         };
