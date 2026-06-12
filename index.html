@@ -79,7 +79,7 @@
                     <input type="number" id="collaborators" placeholder="Ex: 5" oninput="updateGlobalState()" class="w-full p-2 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-emerald-500 outline-none">
                 </div>
 
-                <div class="grid grid-cols-3 gap-2">
+                <div class="grid grid-cols-4 gap-2">
                     <div>
                         <label class="text-[10px] font-bold text-slate-500 mb-1 block">Início</label>
                         <input type="time" id="startTime" onchange="calculateDuration();" class="w-full p-2 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-emerald-500 outline-none">
@@ -87,6 +87,10 @@
                     <div>
                         <label class="text-[10px] font-bold text-slate-500 mb-1 block">Fim</label>
                         <input type="time" id="endTime" onchange="calculateDuration();" class="w-full p-2 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-emerald-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-bold text-slate-500 mb-1 block">Intervalo</label>
+                        <input type="text" id="breakTime" placeholder="15 min" oninput="updateGlobalState()" class="w-full p-2 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-emerald-500 outline-none">
                     </div>
                     <div>
                         <label class="text-[10px] font-bold text-slate-500 mb-1 block">Total</label>
@@ -291,7 +295,7 @@
 
         // Carregar do Local Storage
         let appData = JSON.parse(localStorage.getItem('spg_transplantio_data')) || [];
-        let globalInfo = JSON.parse(localStorage.getItem('spg_transplantio_global')) || { partner: '', estufa: '', date: '', collaborators: '', startTime: '', endTime: '', duration: '' };
+        let globalInfo = JSON.parse(localStorage.getItem('spg_transplantio_global')) || { partner: '', estufa: '', date: '', collaborators: '', startTime: '', endTime: '', breakTime: '', duration: '' };
         let editingIndex = -1;
         let isManualMudas = false;
         let isProcessingShare = false;
@@ -378,14 +382,20 @@
                 const sTime = globalInfo.startTime || '--:--';
                 const eTime = globalInfo.endTime || '--:--';
                 const dur = globalInfo.duration || '';
-                const svgUsers = `<svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="flex-shrink:0"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>`;
-                const svgClock = `<svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="flex-shrink:0"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>`;
-                const svgTimer = `<svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="flex-shrink:0"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12"/></svg>`;
-                const sep = `<span style="opacity:0.3;margin:0 2px;">|</span>`;
-                const item = (icon, text) => `<span style="display:inline-flex;align-items:center;gap:5px;">${icon}${text}</span>`;
-                opBar.innerHTML = item(svgUsers, `${collab} Colaboradores`) + sep +
-                    item(svgClock, `${sTime} → ${eTime}`) +
-                    (dur ? sep + item(svgTimer, dur) : '');
+                const sep = `<span style="opacity:0.25;margin:0 1px;font-weight:300;">|</span>`;
+                const mkIcon = (path, color='currentColor', size=13) => `<svg width="${size}" height="${size}" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" style="flex-shrink:0">${path}</svg>`;
+                const iconUsers  = mkIcon(`<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>`);
+                const iconStart  = mkIcon(`<circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/>`);
+                const iconEnd    = mkIcon(`<circle cx="12" cy="12" r="10"/><line x1="10" y1="15" x2="10" y2="9"/><line x1="14" y1="15" x2="14" y2="9"/>`, '#f97316');
+                const iconBreak  = mkIcon(`<path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/>`, '#f97316');
+                const iconTimer  = mkIcon(`<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12"/>`);
+                const item = (icon, text, color='inherit') => `<span style="display:inline-flex;align-items:center;gap:4px;color:${color};">${icon}${text}</span>`;
+                const brk = globalInfo.breakTime || '';
+                opBar.innerHTML = item(iconUsers, `${collab} Colaboradores`) + sep +
+                    item(iconStart, sTime) + sep +
+                    item(iconEnd, eTime, '#fdba74') +
+                    (brk ? sep + item(iconBreak, brk, '#fdba74') : '') +
+                    (dur ? sep + item(iconTimer, dur) : '');
             }
         }
 
@@ -481,6 +491,7 @@
             globalInfo.collaborators = document.getElementById('collaborators').value;
             globalInfo.startTime = document.getElementById('startTime').value;
             globalInfo.endTime = document.getElementById('endTime').value;
+            globalInfo.breakTime = document.getElementById('breakTime') ? document.getElementById('breakTime').value : '';
             globalInfo.duration = document.getElementById('totalDuration').value;
             saveToStorage();
             updateDynamicTitle();
@@ -626,6 +637,7 @@
                 document.getElementById('appDate').value = '';
                 document.getElementById('startTime').value = '';
                 document.getElementById('endTime').value = '';
+                if(document.getElementById('breakTime')) document.getElementById('breakTime').value = '';
                 document.getElementById('collaborators').value = '';
                 handlePartnerChange();
                 saveToStorage();
@@ -950,6 +962,7 @@
                 document.getElementById('collaborators').value = globalInfo.collaborators;
                 document.getElementById('startTime').value = globalInfo.startTime;
                 document.getElementById('endTime').value = globalInfo.endTime;
+                if(document.getElementById('breakTime')) document.getElementById('breakTime').value = globalInfo.breakTime || '';
                 document.getElementById('totalDuration').value = globalInfo.duration;
             }
             handlePartnerChange();
