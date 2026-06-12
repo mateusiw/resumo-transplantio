@@ -16,7 +16,7 @@
     <!-- Bibliotecas Externas -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://unpkg.com/html-to-image@1.11.11/dist/html-to-image.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     
     <style>
@@ -222,28 +222,20 @@
         <div class="w-full lg:w-3/5 flex flex-col bg-slate-200/50 p-4 rounded-3xl border border-slate-300/50 min-h-[calc(100vh-6rem)]">
             <div id="report-card" class="w-full flex-1 flex flex-col bg-white shadow-2xl overflow-hidden border border-slate-100 relative" style="text-rendering: optimizeLegibility; -webkit-font-smoothing: antialiased;">
                 
-                <div class="bg-gradient-to-br from-teal-600 to-teal-800 p-6 text-white relative overflow-hidden flex flex-col justify-start shrink-0 gap-3 antialiased">
-                    <img src="https://i.imgur.com/f7UnnL0.png" alt="Logo SPG" class="absolute top-4 right-4 w-24 h-24 z-0" style="image-rendering: -webkit-optimize-contrast;">
-                    <div class="relative z-10 w-full pr-24"> 
-                        <h2 id="reportTitle" class="text-sm font-bold leading-snug tracking-normal"></h2>
-                        <div class="mt-3 pt-3 border-t border-white/20">
-                             <span id="headerDateTime" class="text-xs font-medium text-teal-100 block opacity-90 tracking-wide"></span>
-                        </div>
-                    </div>
+                <div class="text-white shrink-0" style="background:#0d5c3a;padding:18px 20px 14px;">
+                    <h2 id="reportTitle" style="font-size:15px;font-weight:900;line-height:1.3;letter-spacing:-0.2px;"></h2>
+                    <span id="headerDateTime" style="display:block;font-size:11px;font-weight:500;opacity:0.72;margin-top:3px;"></span>
+                    <div id="operationalBar" style="display:flex;flex-wrap:wrap;align-items:center;gap:0 12px;border-top:1px solid rgba(255,255,255,0.2);margin-top:10px;padding-top:10px;font-size:11px;font-weight:600;opacity:0.92;"></div>
                 </div>
-                
-                <div id="operationalBar" class="bg-white border-b border-slate-100 px-6 py-4 flex justify-between items-center"></div>
 
-                <div id="operationalFooter" class="bg-white border-b border-slate-200 p-4 shrink-0 z-10"></div>
+                <div id="operationalFooter" class="shrink-0 z-10 border-b border-slate-100" style="background:#e8f4ee;"></div>
 
                 <div id="reportContent" class="flex-1 overflow-y-auto">
                     <div class="p-8 text-center text-slate-400 text-xs italic h-full flex items-center justify-center">Lance os plantios no formulário.</div>
                 </div>
 
-                <div class="bg-slate-100 p-3 text-center border-t border-slate-200 shrink-0">
-                    <div class="flex justify-center items-center gap-2 text-[10px] text-slate-400 font-medium uppercase tracking-widest leading-relaxed">
-                        SPG • Controle de Plantio
-                    </div>
+                <div class="p-3 text-center border-t border-slate-100 shrink-0" style="background:#f8faf9;">
+                    <div id="reportFooterText" style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.12em;color:#94a3b8;">SPG • CONTROLE DE PLANTIO</div>
                 </div>
             </div>
         </div>
@@ -358,28 +350,42 @@
         // --- RENDERIZAÇÃO ---
 
         function updateDynamicTitle() {
-            const partner = globalInfo.partner || 'Local';
+            const partner = globalInfo.partner || '';
             const estufaStr = (globalInfo.partner === 'SPG Sede' && globalInfo.estufa) ? ` - ${globalInfo.estufa}` : '';
-            document.getElementById('reportTitle').innerHTML = `Resumo de Transplantio<br>${partner}${estufaStr}`;
-            
+            const days = ['Domingo','Segunda-feira','Terça-feira','Quarta-feira','Quinta-feira','Sexta-feira','Sábado'];
+
+            let dayName = '', dateFormatted = '', weekNum = '';
+            if (globalInfo.date) {
+                const parts = globalInfo.date.split('-');
+                const dObj = new Date(parts[0], parts[1] - 1, parts[2]);
+                dayName = days[dObj.getDay()];
+                dateFormatted = `${parts[2]}/${parts[1]}/${parts[0]}`;
+                weekNum = getWeekNumber(dObj);
+            }
+
+            const titleEl = document.getElementById('reportTitle');
+            if (titleEl) titleEl.textContent = dayName ? `Resumo do Transplantio · ${dayName}` : 'Resumo do Transplantio';
+
             const dateEl = document.getElementById('headerDateTime');
             if (dateEl) {
-                if (globalInfo.date) {
-                    const parts = globalInfo.date.split('-');
-                    const dObj = new Date(parts[0], parts[1] - 1, parts[2]);
-                    dateEl.innerText = `Data: ${parts[2]}/${parts[1]}/${parts[0]} - SE ${getWeekNumber(dObj)}`;
-                } else dateEl.innerText = "Data:";
+                const parts = [dateFormatted, weekNum ? `Semana ${weekNum}` : '', (partner + estufaStr) || ''].filter(Boolean);
+                dateEl.textContent = parts.join(' · ');
             }
-            
+
             const opBar = document.getElementById('operationalBar');
             if (opBar) {
                 const collab = globalInfo.collaborators || '-';
-                const sTime = globalInfo.startTime || '00:00';
-                const eTime = globalInfo.endTime || '00:00';
-                const durStr = globalInfo.duration ? `(${globalInfo.duration})` : '';
-                opBar.innerHTML = `
-                    <div class="flex flex-col"><span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">Operacional</span><span class="text-sm font-bold text-slate-700">Colaboradores: ${collab}</span></div>
-                    <div class="flex flex-col items-end"><span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">Horário de Plantio</span><span class="text-sm font-bold text-slate-700">${sTime} - ${eTime} <span class="text-slate-400 font-normal text-xs ml-1">${durStr}</span></span></div>`;
+                const sTime = globalInfo.startTime || '--:--';
+                const eTime = globalInfo.endTime || '--:--';
+                const dur = globalInfo.duration || '';
+                const svgUsers = `<svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="flex-shrink:0"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>`;
+                const svgClock = `<svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="flex-shrink:0"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>`;
+                const svgTimer = `<svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="flex-shrink:0"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12"/></svg>`;
+                const sep = `<span style="opacity:0.3;margin:0 2px;">|</span>`;
+                const item = (icon, text) => `<span style="display:inline-flex;align-items:center;gap:5px;">${icon}${text}</span>`;
+                opBar.innerHTML = item(svgUsers, `${collab} Colaboradores`) + sep +
+                    item(svgClock, `${sTime} → ${eTime}`) +
+                    (dur ? sep + item(svgTimer, dur) : '');
             }
         }
 
@@ -428,7 +434,7 @@
             const footer = document.getElementById('operationalFooter');
             if(!container || !footer) return;
             container.innerHTML = '';
-            let tPGlobal = 0, tLGlobal = 0, tSGlobal = 0;
+            let tPGlobal = 0, tLGlobal = 0, tSGlobal = 0, numBlocos = 0;
             const allData = getFilteredData();
             const data = allData.filter(item => item.active !== false);
 
@@ -444,22 +450,25 @@
                     let bP = 0, bL = 0, bS = 0;
                     const bVal = bItems[0].block, cVal = bItems[0].cycle;
                     let label = bItems[0].crop.toLowerCase().includes('pepino') ? "Setor" : "Bloco";
-                    let cardHtml = `<div class="p-5 border-b border-slate-100 last:border-0 hover:bg-slate-50/50 transition-colors"><div class="mb-4 text-xs font-bold text-slate-800 uppercase tracking-widest">${label} ${bVal} ${cVal ? '• CICLO '+cVal : ''}</div><div class="space-y-4">`;
+                    numBlocos++;
+                    let cardHtml = `<div style="padding:14px 16px;border-bottom:1px solid #f1f5f9;"><div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;"><span style="font-size:13px;font-weight:800;color:#1e293b;">${label} ${bVal}</span>${cVal ? `<span style="font-size:9px;font-weight:700;background:#e8f4ee;color:#0d5c3a;padding:2px 8px;border-radius:99px;border:1px solid #c5ddd4;">Ciclo ${cVal}</span>` : ''}</div><div style="display:flex;flex-direction:column;gap:6px;">`;
                     bItems.forEach(item => {
                         bP += item.planted; bL += item.losses; bS += item.seedlings;
                         tPGlobal += item.planted; tLGlobal += item.losses; tSGlobal += item.seedlings;
                         const pPct = item.seedlings > 0 ? (item.planted / item.seedlings) * 100 : 0;
-                        cardHtml += `<div class="bg-white rounded-xl border border-slate-100 p-3 shadow-sm"><div class="flex justify-between items-start mb-2"><span class="text-xs font-bold text-slate-700">${item.crop} <span class="text-slate-400 font-normal">(${item.variety || '-'})</span></span><span class="text-[9px] font-bold text-slate-400 uppercase">${item.age ? 'Idade: ' + item.age + ' dias' : '-'}</span></div><div class="grid grid-cols-2 gap-2"><div class="flex flex-col items-center p-2 bg-emerald-50/50 rounded-lg border border-emerald-100/50"><span class="text-[8px] font-bold text-emerald-500 uppercase">Plantado</span><span class="font-extrabold text-emerald-700 text-xs">${item.planted.toLocaleString('pt-BR')} <span class="text-[11px] font-black text-emerald-600">(${pPct.toFixed(0)}%)</span></span></div><div class="flex flex-col items-center p-2 bg-red-50/50 rounded-lg border border-red-100/50"><span class="text-[8px] font-bold text-red-400 uppercase">Perdas</span><span class="font-bold text-red-600 text-[10px]">${item.losses.toLocaleString('pt-BR')} <span class="text-[11px] font-black text-red-600">(${item.lossPercent}%)</span></span></div></div></div>`;
+                        cardHtml += `<div style="background:#f8fafc;border-radius:8px;border:1px solid #e2e8f0;padding:10px 12px;"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:7px;"><span style="font-size:11px;font-weight:700;color:#334155;">${item.crop} <span style="color:#94a3b8;font-weight:500;">${item.variety || ''}</span></span>${item.age ? `<span style="font-size:9px;color:#94a3b8;font-weight:600;">Idade da Planta: ${item.age} dias</span>` : ''}</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;"><div style="background:#f0fdf4;border-radius:6px;padding:7px 8px;border:1px solid #bbf7d0;text-align:center;"><div style="font-size:7px;font-weight:800;color:#16a34a;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:2px;">Plantado</div><div style="font-size:14px;font-weight:900;color:#15803d;line-height:1.1;">${item.planted.toLocaleString('pt-BR')}</div><div style="font-size:9px;color:#22c55e;font-weight:600;margin-top:1px;">${pPct.toFixed(0)}% de sucesso</div></div><div style="background:#fff1f2;border-radius:6px;padding:7px 8px;border:1px solid #fecaca;text-align:center;"><div style="font-size:7px;font-weight:800;color:#dc2626;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:2px;">Perdas</div><div style="font-size:14px;font-weight:900;color:#b91c1c;line-height:1.1;">${item.losses.toLocaleString('pt-BR')}</div><div style="font-size:9px;color:#ef4444;font-weight:600;margin-top:1px;">${item.lossPercent}% de perdas</div></div></div></div>`;
                     });
                     const bLPP = bS > 0 ? (bL / bS) * 100 : 0;
                     const bPPP = bS > 0 ? (bP / bS) * 100 : 0;
-                    cardHtml += `</div><div class="mt-4 pt-3 border-t border-dashed border-slate-200 flex justify-between items-center px-1"><span class="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Total do ${label} ${bVal}</span><div class="flex gap-4 items-center"><div class="text-right"><span class="block text-[8px] font-bold text-emerald-500 uppercase">Plantado</span><span class="text-xs font-black text-emerald-800">${bP.toLocaleString('pt-BR')} <span class="text-[12px] font-black text-emerald-600">(${bPPP.toFixed(0)}%)</span></span></div><div class="text-right"><span class="block text-[8px] font-bold text-red-400 uppercase">Perdas</span><span class="text-xs font-black text-red-600">${bL.toLocaleString('pt-BR')} <span class="text-[12px] font-black text-red-600">(${bLPP.toFixed(0)}%)</span></span></div></div></div></div>`;
+                    cardHtml += `</div><div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;padding-top:8px;border-top:1px dashed #e2e8f0;"><span style="font-size:9px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:0.5px;">Total ${label} ${bVal}</span><div style="display:flex;gap:14px;"><div style="text-align:right;"><div style="font-size:7px;font-weight:700;color:#16a34a;text-transform:uppercase;margin-bottom:1px;">Plantado</div><div style="font-size:12px;font-weight:900;color:#15803d;">${bP.toLocaleString('pt-BR')} <span style="font-size:9px;color:#22c55e;">(${bPPP.toFixed(0)}%)</span></div></div><div style="text-align:right;"><div style="font-size:7px;font-weight:700;color:#dc2626;text-transform:uppercase;margin-bottom:1px;">Perdas</div><div style="font-size:12px;font-weight:900;color:#b91c1c;">${bL.toLocaleString('pt-BR')} <span style="font-size:9px;color:#ef4444;">(${bLPP.toFixed(0)}%)</span></div></div></div></div></div>`;
                     container.innerHTML += cardHtml;
                 });
             }
             const gLP = tSGlobal > 0 ? (tLGlobal / tSGlobal) * 100 : 0;
             const gPP = tSGlobal > 0 ? (tPGlobal / tSGlobal) * 100 : 0;
-            footer.innerHTML = `<div class="bg-orange-50 rounded-xl p-4 flex items-center justify-between relative overflow-hidden"><div class="text-center flex-1"><div class="text-[10px] text-emerald-600 font-bold uppercase mb-0.5">TOTAL PLANTADO</div><div class="text-xl font-extrabold text-emerald-800">${tPGlobal.toLocaleString('pt-BR')} <span class="text-[18px] font-black text-emerald-600">(${gPP.toFixed(0)}%)</span></div></div><div class="w-px h-8 bg-orange-200 mx-2"></div><div class="text-center flex-1"><div class="text-[10px] text-red-400 font-bold uppercase mb-0.5">TOTAL PERDAS</div><div class="text-sm font-bold text-red-600">${tLGlobal.toLocaleString('pt-BR')} <span class="text-[14px] font-black">(${gLP.toFixed(0)}%)</span></div></div></div>`;
+            footer.innerHTML = `<div style="display:grid;grid-template-columns:repeat(2,1fr);"><div style="text-align:center;padding:12px 8px;border-right:1px solid #c5ddd4;"><div style="font-size:8px;font-weight:800;color:#0d5c3a;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:4px;">Plantado</div><div style="font-size:20px;font-weight:900;color:#0a3d28;line-height:1;">${tPGlobal.toLocaleString('pt-BR')}</div><div style="font-size:9px;font-weight:600;color:#22c55e;margin-top:2px;">${gPP.toFixed(0)}% de sucesso</div></div><div style="text-align:center;padding:12px 8px;border-right:1px solid #c5ddd4;"><div style="font-size:8px;font-weight:800;color:#b91c1c;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:4px;">Perdas</div><div style="font-size:20px;font-weight:900;color:#991b1b;line-height:1;">${tLGlobal.toLocaleString('pt-BR')}</div><div style="font-size:9px;font-weight:600;color:#ef4444;margin-top:2px;">${gLP.toFixed(0)}% de perdas</div></div></div>`;
+            const footerEl = document.getElementById('reportFooterText');
+            if (footerEl) footerEl.textContent = globalInfo.partner ? globalInfo.partner.toUpperCase() : 'SPG • CONTROLE DE PLANTIO';
             lucide.createIcons();
         }
 
@@ -827,27 +836,24 @@
                 }));
 
                 // 1. Gera a imagem do Canvas primeiro
-                const canvas = await html2canvas(el, {
-                    scale: 5, useCORS: true, allowTaint: true, scrollY: -window.scrollY, backgroundColor: '#ffffff',
-                    onclone: (doc) => {
-                        const cEl = doc.getElementById('report-card');
-                        const content = doc.getElementById('reportContent');
-                        
-                        if (cEl) { 
-                            cEl.style.width = '450px'; 
-                            cEl.style.maxWidth = '450px'; 
-                            cEl.style.margin = '0'; 
-                            cEl.style.boxShadow = 'none'; 
-                            cEl.style.borderRadius = '0'; 
-                            cEl.style.border = 'none'; 
-                        }
-                        if (content) { 
-                            content.style.height = 'auto'; 
-                            content.style.overflow = 'visible'; 
-                            content.style.maxHeight = 'none';
-                        }
-                    }
-                });
+                const cEl = document.getElementById('report-card');
+                const content = document.getElementById('reportContent');
+                const saved = {
+                    cW: cEl?.style.width, cMW: cEl?.style.maxWidth, cM: cEl?.style.margin,
+                    cBS: cEl?.style.boxShadow, cBR: cEl?.style.borderRadius, cB: cEl?.style.border,
+                    cH: cEl?.style.height, cMnH: cEl?.style.minHeight, cFl: cEl?.style.flex,
+                    ctH: content?.style.height, ctO: content?.style.overflow, ctMH: content?.style.maxHeight
+                };
+                // 412px = largura lógica do S24 FE (1080px físicos ÷ 2.625 density)
+                if (cEl) { cEl.style.width = '412px'; cEl.style.maxWidth = '412px'; cEl.style.height = 'auto'; cEl.style.minHeight = 'unset'; cEl.style.flex = 'none'; cEl.style.margin = '0'; cEl.style.boxShadow = 'none'; cEl.style.borderRadius = '0'; cEl.style.border = 'none'; }
+                if (content) { content.style.height = 'auto'; content.style.overflow = 'visible'; content.style.maxHeight = 'none'; }
+
+                const blob = await htmlToImage.toBlob(el, { pixelRatio: 5, backgroundColor: '#ffffff', cacheBust: true });
+
+                if (cEl) { cEl.style.width = saved.cW; cEl.style.maxWidth = saved.cMW; cEl.style.height = saved.cH; cEl.style.minHeight = saved.cMnH; cEl.style.flex = saved.cFl; cEl.style.margin = saved.cM; cEl.style.boxShadow = saved.cBS; cEl.style.borderRadius = saved.cBR; cEl.style.border = saved.cB; }
+                if (content) { content.style.height = saved.ctH; content.style.overflow = saved.ctO; content.style.maxHeight = saved.ctMH; }
+
+                if (!blob) throw new Error('html-to-image retornou blob nulo');
                 
                 // 2. Prepara os Textos para o WhatsApp
                 let dateObj = new Date();
@@ -875,32 +881,32 @@
                 sendDataToGoogleSheets(payload); // Dispara a função mas não trava a tela aguardando
 
                 // 4. Compartilha via WhatsApp Native ou Desktop
-                canvas.toBlob(async (blob) => {
-                    const file = new File([blob], filename, { type: 'image/png' });
-                    
-                    if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
-                        try {
-                            await navigator.share({
-                                files: [file],
-                                title: filename,
-                                text: shareText
-                            });
-                        } catch (error) {
-                            console.log('Compartilhamento cancelado pelo usuário.', error);
-                        }
-                    } else {
-                        const link = document.createElement('a');
-                        link.href = canvas.toDataURL('image/png');
-                        link.download = filename;
-                        document.body.appendChild(link);
-                        link.click();
-                        document.body.removeChild(link);
-                        
-                        setTimeout(() => {
-                            window.open(`https://web.whatsapp.com/send?text=${encodeURIComponent(shareText)}`, '_blank');
-                        }, 1500);
+                const file = new File([blob], filename, { type: 'image/png' });
+
+                if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+                    try {
+                        await navigator.share({
+                            files: [file],
+                            title: filename,
+                            text: shareText
+                        });
+                    } catch (error) {
+                        console.log('Compartilhamento cancelado pelo usuário.', error);
                     }
-                }, 'image/png');
+                } else {
+                    const objectUrl = URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = objectUrl;
+                    link.download = filename;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    URL.revokeObjectURL(objectUrl);
+
+                    setTimeout(() => {
+                        window.open(`https://web.whatsapp.com/send?text=${encodeURIComponent(shareText)}`, '_blank');
+                    }, 1500);
+                }
 
             } catch (err) {
                 console.error("Erro ao processar:", err);
