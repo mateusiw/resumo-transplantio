@@ -42,9 +42,9 @@
         </div>
         <div class="flex gap-2 w-full md:w-auto overflow-x-auto pb-1 md:pb-0">
             <!-- Botão Único que inicia o fluxo de confirmação e envio -->
-            <button onclick="confirmBeforeSend()" class="flex-1 md:flex-none flex items-center justify-center gap-2 px-3 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg text-xs font-bold shadow-lg active:scale-95 transition-all whitespace-nowrap">
+            <button onclick="downloadAndShare()" class="flex-1 md:flex-none flex items-center justify-center gap-2 px-3 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg text-xs font-bold shadow-lg active:scale-95 transition-all whitespace-nowrap">
                 <i data-lucide="share-2" class="w-4 h-4"></i>
-                <span>Enviar para o WhatsApp</span>
+                <span>Baixar Imagem</span>
             </button>
         </div>
     </div>
@@ -232,7 +232,7 @@
                     <div id="operationalBar" style="display:flex;flex-wrap:wrap;align-items:center;gap:0 12px;border-top:1px solid rgba(255,255,255,0.2);margin-top:10px;padding-top:10px;font-size:11px;font-weight:600;opacity:0.92;"></div>
                 </div>
 
-                <div id="operationalFooter" class="shrink-0 z-10 border-b border-slate-100" style="background:#e8f4ee;"></div>
+                <div id="operationalFooter" class="shrink-0 z-10" style="background:#fff;border-bottom:1px solid #e2e8f0;"></div>
 
                 <div id="reportContent" class="flex-1 overflow-y-auto">
                     <div class="p-8 text-center text-slate-400 text-xs italic h-full flex items-center justify-center">Lance os plantios no formulário.</div>
@@ -461,7 +461,7 @@
                     const bVal = bItems[0].block, cVal = bItems[0].cycle;
                     let label = bItems[0].crop.toLowerCase().includes('pepino') ? "Setor" : "Bloco";
                     numBlocos++;
-                    let cardHtml = `<div style="padding:14px 16px;border-bottom:1px solid #f1f5f9;"><div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;"><span style="font-size:13px;font-weight:800;color:#1e293b;">${label} ${bVal}</span>${cVal ? `<span style="font-size:9px;font-weight:700;background:#e8f4ee;color:#0d5c3a;padding:2px 8px;border-radius:99px;border:1px solid #c5ddd4;">Ciclo ${cVal}</span>` : ''}</div><div style="display:flex;flex-direction:column;gap:6px;">`;
+                    let cardHtml = `<div style="padding:14px 16px;border-bottom:1px solid #f1f5f9;"><div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;"><span style="font-size:13px;font-weight:800;color:#1e293b;">${label} ${bVal}</span>${cVal ? `<span style="font-size:9px;font-weight:700;background:#e8f4ee;color:#0d5c3a;padding:2px 8px;border-radius:99px;border:1px solid #c5ddd4;white-space:nowrap;flex-shrink:0;">Ciclo ${cVal}</span>` : ''}</div><div style="display:flex;flex-direction:column;gap:6px;">`;
                     bItems.forEach(item => {
                         bP += item.planted; bL += item.losses; bS += item.seedlings;
                         tPGlobal += item.planted; tLGlobal += item.losses; tSGlobal += item.seedlings;
@@ -476,7 +476,7 @@
             }
             const gLP = tSGlobal > 0 ? (tLGlobal / tSGlobal) * 100 : 0;
             const gPP = tSGlobal > 0 ? (tPGlobal / tSGlobal) * 100 : 0;
-            footer.innerHTML = `<div style="display:grid;grid-template-columns:repeat(2,1fr);"><div style="text-align:center;padding:12px 8px;border-right:1px solid #c5ddd4;"><div style="font-size:8px;font-weight:800;color:#0d5c3a;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:4px;">Plantado</div><div style="font-size:20px;font-weight:900;color:#0a3d28;line-height:1;">${tPGlobal.toLocaleString('pt-BR')}</div><div style="font-size:9px;font-weight:600;color:#22c55e;margin-top:2px;">${gPP.toFixed(0)}% de sucesso</div></div><div style="text-align:center;padding:12px 8px;border-right:1px solid #c5ddd4;"><div style="font-size:8px;font-weight:800;color:#b91c1c;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:4px;">Perdas</div><div style="font-size:20px;font-weight:900;color:#991b1b;line-height:1;">${tLGlobal.toLocaleString('pt-BR')}</div><div style="font-size:9px;font-weight:600;color:#ef4444;margin-top:2px;">${gLP.toFixed(0)}% de perdas</div></div></div>`;
+            footer.innerHTML = `<div style="display:grid;grid-template-columns:repeat(2,1fr);"><div style="text-align:center;padding:12px 8px;border-right:1px solid #e2e8f0;"><div style="font-size:8px;font-weight:800;color:#0d5c3a;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:4px;">Plantado</div><div style="font-size:20px;font-weight:900;color:#0a3d28;line-height:1;">${tPGlobal.toLocaleString('pt-BR')}</div><div style="font-size:9px;font-weight:600;color:#22c55e;margin-top:2px;">${gPP.toFixed(0)}% de sucesso</div></div><div style="text-align:center;padding:12px 8px;"><div style="font-size:8px;font-weight:800;color:#b91c1c;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:4px;">Perdas</div><div style="font-size:20px;font-weight:900;color:#991b1b;line-height:1;">${tLGlobal.toLocaleString('pt-BR')}</div><div style="font-size:9px;font-weight:600;color:#ef4444;margin-top:2px;">${gLP.toFixed(0)}% de perdas</div></div></div>`;
             const footerEl = document.getElementById('reportFooterText');
             if (footerEl) footerEl.textContent = globalInfo.partner ? globalInfo.partner.toUpperCase() : 'SPG • CONTROLE DE PLANTIO';
             lucide.createIcons();
@@ -835,8 +835,8 @@
             const el = document.getElementById('report-card');
             
             // Pega o botão do navbar
-            const btnSpan = document.querySelector('button[onclick="confirmBeforeSend()"] span');
-            const originalText = btnSpan ? btnSpan.innerText : 'Enviar para o WhatsApp';
+            const btnSpan = document.querySelector('button[onclick="downloadAndShare()"] span');
+            const originalText = btnSpan ? btnSpan.innerText : 'Baixar Imagem';
             if (btnSpan) btnSpan.innerText = "Processando...";
 
             try {
@@ -856,8 +856,7 @@
                     cH: cEl?.style.height, cMnH: cEl?.style.minHeight, cFl: cEl?.style.flex,
                     ctH: content?.style.height, ctO: content?.style.overflow, ctMH: content?.style.maxHeight
                 };
-                // 412px = largura lógica do S24 FE (1080px físicos ÷ 2.625 density)
-                if (cEl) { cEl.style.width = '412px'; cEl.style.maxWidth = '412px'; cEl.style.height = 'auto'; cEl.style.minHeight = 'unset'; cEl.style.flex = 'none'; cEl.style.margin = '0'; cEl.style.boxShadow = 'none'; cEl.style.borderRadius = '0'; cEl.style.border = 'none'; }
+                if (cEl) { cEl.style.width = '600px'; cEl.style.maxWidth = '600px'; cEl.style.height = 'auto'; cEl.style.minHeight = 'unset'; cEl.style.flex = 'none'; cEl.style.margin = '0'; cEl.style.boxShadow = 'none'; cEl.style.borderRadius = '0'; cEl.style.border = 'none'; }
                 if (content) { content.style.height = 'auto'; content.style.overflow = 'visible'; content.style.maxHeight = 'none'; }
 
                 const blob = await htmlToImage.toBlob(el, { pixelRatio: 5, backgroundColor: '#ffffff', cacheBust: true });
@@ -867,58 +866,25 @@
 
                 if (!blob) throw new Error('html-to-image retornou blob nulo');
                 
-                // 2. Prepara os Textos para o WhatsApp
-                let dateObj = new Date();
-                if (globalInfo.date) {
-                    const parts = globalInfo.date.split('-');
-                    dateObj = new Date(parts[0], parts[1] - 1, parts[2]);
-                }
-                const dayStr = dateObj.toLocaleDateString('pt-BR');
-                const weekNum = getWeekNumber(dateObj);
-                
-                const activeData = getFilteredData().filter(item => item.active !== false);
-                const totalPlanted = activeData.reduce((sum, item) => sum + item.planted, 0);
-                
-                const partnerName = globalInfo.partner || '';
-                const estufaName = (globalInfo.partner === 'SPG Sede' && globalInfo.estufa) ? ` - ${globalInfo.estufa}` : '';
-                
-                const shareText = `\`Relatório do Transplantio\`\n\n*Local:* ${partnerName}${estufaName}\n*Data:* ${dayStr} - SE ${weekNum}\n*Total Plantado:* ${totalPlanted.toLocaleString('pt-BR')} mudas`;
                 const filename = `Resumo_Plantio_${new Date().toISOString().slice(0,10)}.png`;
 
-                // 3. Envia os dados para o Google Sheets EM SEGUNDO PLANO
+                // 2. Envia os dados para o Google Sheets EM SEGUNDO PLANO
+                const activeData = getFilteredData().filter(item => item.active !== false);
                 const payload = {
                     globalInfo: globalInfo,
                     items: activeData
                 };
                 sendDataToGoogleSheets(payload); // Dispara a função mas não trava a tela aguardando
 
-                // 4. Compartilha via WhatsApp Native ou Desktop
-                const file = new File([blob], filename, { type: 'image/png' });
-
-                if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
-                    try {
-                        await navigator.share({
-                            files: [file],
-                            title: filename,
-                            text: shareText
-                        });
-                    } catch (error) {
-                        console.log('Compartilhamento cancelado pelo usuário.', error);
-                    }
-                } else {
-                    const objectUrl = URL.createObjectURL(blob);
-                    const link = document.createElement('a');
-                    link.href = objectUrl;
-                    link.download = filename;
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
-                    URL.revokeObjectURL(objectUrl);
-
-                    setTimeout(() => {
-                        window.open(`https://web.whatsapp.com/send?text=${encodeURIComponent(shareText)}`, '_blank');
-                    }, 1500);
-                }
+                // 4. Baixa a imagem
+                const objectUrl = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = objectUrl;
+                link.download = filename;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(objectUrl);
 
             } catch (err) {
                 console.error("Erro ao processar:", err);
